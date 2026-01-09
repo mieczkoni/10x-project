@@ -12,13 +12,14 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto"; -- for gen_random_uuid() and digest()
 1. List of tables with columns, types, and constraints
 
 ```sql
--- 1) users (application profile table mapping to Supabase auth)
-This table is managed by Supabase Auth.
+-- 1) users
+-- Note: User authentication and profiles are fully managed by Supabase Auth (auth.users table).
+-- No separate public.users table is needed. All application tables reference auth.users(id) directly.
 
 -- 2) decks
 CREATE TABLE IF NOT EXISTS public.decks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.users (id),
+  user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -29,8 +30,8 @@ CREATE TABLE IF NOT EXISTS public.decks (
 -- 3) cards
 CREATE TABLE IF NOT EXISTS public.cards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  deck_id UUID NOT NULL REFERENCES public.decks (id),
-  user_id UUID NOT NULL REFERENCES public.users (id),
+  deck_id UUID NOT NULL REFERENCES public.decks (id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   front TEXT NOT NULL,
   back TEXT NOT NULL,
   tags TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS public.cards (
 -- 4) events / telemetry (KPI events)
 CREATE TABLE IF NOT EXISTS public.events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.users (id),
+  user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
   event_type TEXT NOT NULL, -- e.g. generated_view, accepted_without_edit, ...
   payload JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -54,14 +55,16 @@ CREATE TABLE IF NOT EXISTS public.events (
 
 2. Relationships between tables
 
-- `users` 1 --> N `decks` (decks.user_id → users.id)
+- `auth.users` (Supabase Auth) 1 --> N `decks` (decks.user_id → auth.users.id)
 - `decks` 1 --> N `cards` (cards.deck_id → decks.id)
-- `users` 1 --> N `cards` (cards.user_id → users.id) — denormalized to simplify RLS and queries
-- `users` 1 --> N `events` (events.user_id → users.id)
+- `auth.users` 1 --> N `cards` (cards.user_id → auth.users.id) — denormalized to simplify RLS and queries
+- `auth.users` 1 --> N `events` (events.user_id → auth.users.id)
 
 Notes:
+- User authentication and profiles are fully managed by Supabase Auth in the `auth` schema. All application tables reference `auth.users` directly.
 - `cards.user_id` is stored in addition to `deck_id` to make RLS and query patterns simpler and faster. Application or DB trigger must ensure `cards.user_id` matches `decks.user_id`.
 - The schema avoids storing generated candidate cards or generation sessions per decision.
+- CASCADE deletes are enabled on all foreign keys to `auth.users`, so when a user is deleted from Supabase Auth, all their data is automatically removed.
 
 3. Indexes
 
@@ -116,18 +119,12 @@ CREATE POLICY events_is_owner ON public.events
   FOR ALL
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
-
--- Users table: optionally allow users to manage their profile
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-CREATE POLICY users_is_owner ON public.users
-  FOR ALL
-  USING (id = auth.uid())
-  WITH CHECK (id = auth.uid());
 ```
 
 Notes:
-- `auth.uid()` is a Supabase/Postgres helper available in RLS policy expressions; adjust if your environment exposes JWT claims differently.
+- `auth.uid()` is a Supabase/Postgres helper function that returns the authenticated user's ID from the Supabase Auth JWT token. It's used in RLS policies to match against `user_id` columns.
 - These policies restrict reads/writes to the owning user. No admin/service bypass policies are added for MVP; service-side tasks should be performed via server functions with elevated privileges or a dedicated admin role.
+- All user data in `public` schema references `auth.users.id` directly via foreign keys with CASCADE delete.
 
 5. Triggers and helper functions
 
@@ -174,23 +171,32 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 Usage:
 - Application should call `generate_content_hash(front, back)` to compute `content_hash` before inserting a card, or compute equivalent on client side and send it.
 
-6. GDPR / account deletion flow (transactional hard delete)
+6. GDPR / account deletion flow (CASCADE delete)
 
-- The system must perform an immediate, irreversible deletion of all user data (cards, decks, events, and users row) atomically.
-- Recommended deletion transaction (example application-server SQL):
+- The system performs an immediate, irreversible deletion of all user data when the Supabase Auth user is deleted.
+- All foreign keys to `auth.users` have `ON DELETE CASCADE`, so deleting the auth user automatically removes all related data.
+- Deletion is performed via Supabase Auth API or Admin dashboard:
+
+```javascript
+// Using Supabase Admin API
+await supabase.auth.admin.deleteUser(userId);
+// This automatically cascades to delete all rows in: cards, decks, events
+```
+
+- Alternative: Manual deletion transaction (if needed for audit purposes):
 
 ```sql
 BEGIN;
   DELETE FROM public.cards WHERE user_id = '<USER_UUID>';
   DELETE FROM public.decks WHERE user_id = '<USER_UUID>';
   DELETE FROM public.events WHERE user_id = '<USER_UUID>';
-  DELETE FROM public.users WHERE id = '<USER_UUID>';
-  -- Optionally: delete the Supabase Auth user (via Auth API) after DB deletes to avoid FK issues
+  -- Then delete the Supabase Auth user via Auth API
 COMMIT;
 ```
 
 Notes:
-- Avoid `ON DELETE CASCADE` for automatic cascading deletes in schema to keep deletion behavior explicit and auditable.
+- `ON DELETE CASCADE` is enabled on all foreign keys to `auth.users` for automatic cleanup.
+- Deleting the Supabase Auth user (via API or dashboard) will automatically cascade delete all user data in public schema.
 - Ensure any external telemetry or logs are also deleted per GDPR requirements (application infra responsibility).
 
 7. Constraints, validations, and notes
@@ -204,8 +210,10 @@ Notes:
 8. Migration / deployment notes
 
 - Ensure `pgcrypto` extension is created before tables if using `gen_random_uuid()` or `digest()`.
-- Populate `public.users.id` from `auth.uid` at user sign-up time (via trigger on auth sign-up or application code).
+- **User Setup**: Supabase Auth fully manages user authentication and profiles in the `auth.users` table. No additional public.users table is needed.
+- All application tables reference `auth.users(id)` directly with `ON DELETE CASCADE` for automatic cleanup.
 - Test RLS policies early using Supabase policy tester or by simulating JWT claims to validate `auth.uid()` behavior.
+- The application uses `auth.uid()` in RLS policies which returns the authenticated user's ID from Supabase Auth JWT token.
 
 ---
 
