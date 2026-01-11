@@ -193,9 +193,32 @@ export const updateCardSchema = z
   });
 
 /**
+ * Request body for POST /cards/duplicates:check.
+ * Validates duplicate check input - matches create constraints for consistency.
+ */
+export const checkCardDuplicateSchema = z.object({
+  deck_id: z
+    .string({ required_error: 'deck_id is required' })
+    .uuid({ message: 'Invalid deck ID format' }),
+  
+  front: z
+    .string({ required_error: 'front is required' })
+    .trim()
+    .min(1, 'Front cannot be empty')
+    .max(2000, 'Front must be 2000 characters or less'),
+  
+  back: z
+    .string({ required_error: 'back is required' })
+    .trim()
+    .min(1, 'Back cannot be empty')
+    .max(10000, 'Back must be 10000 characters or less'),
+});
+
+/**
  * Type exports for use in route handlers and service layer.
  */
 export type CardIdParam = z.infer<typeof cardIdParamSchema>;
 export type ListCardsQuery = z.infer<typeof listCardsQuerySchema>;
 export type CreateCardBody = z.infer<typeof createCardSchema>;
 export type UpdateCardBody = z.infer<typeof updateCardSchema>;
+export type CheckCardDuplicateBody = z.infer<typeof checkCardDuplicateSchema>;
