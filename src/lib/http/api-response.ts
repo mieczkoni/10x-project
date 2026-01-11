@@ -93,6 +93,19 @@ export const ApiErrors = {
     jsonError(404, 'not_found', message),
 
   /**
+   * 404 Not Found - Deck doesn't exist (or not owned by user).
+   * Used in card creation when deck_id is invalid.
+   */
+  deckNotFound: (message = 'Deck not found') =>
+    jsonError(404, 'deck_not_found', message),
+
+  /**
+   * 409 Conflict - Duplicate resource (e.g., card with identical content).
+   */
+  duplicate: (message: string) =>
+    jsonError(409, 'duplicate_in_deck', message),
+
+  /**
    * 500 Internal Server Error - Unexpected server failure.
    */
   serverError: (message = 'An unexpected error occurred', details?: JsonObject) =>
