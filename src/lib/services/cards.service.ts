@@ -25,10 +25,12 @@ import type {
   CheckCardDuplicateResponseDto,
   UserId,
   CardId,
-  DeckId,
+  BulkCreateCardsCommand,
+  BulkCreateCardsResponseDto,
 } from "../../types";
 import type { ListCardsQuery } from "../validation/cards.zod";
 import { decodeCursor, extractCursor } from "../pagination/cursor";
+import { createEvent } from "./events.service";
 
 /**
  * Computes the content hash for a card using the server-side PostgreSQL function.
@@ -48,6 +50,180 @@ async function computeContentHash(supabase: SupabaseClient, front: string, back:
   }
 
   return data;
+}
+
+/**
+ * Small utility to process items with a concurrency limit.
+ */
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let index = 0;
+
+  const worker = async () => {
+    while (index < items.length) {
+      const current = index++;
+      results[current] = await mapper(items[current], current);
+    }
+  };
+
+  const workers = Array.from({ length: Math.min(concurrency, items.length) || 1 }, worker);
+  await Promise.all(workers);
+
+  return results;
+}
+
+type CandidateWithHash = BulkCreateCardsCommand["cards"][number] & {
+  content_hash: string;
+  index: number;
+};
+
+/**
+ * Bulk creates cards for a deck, returning created and skipped (duplicate) candidates.
+ */
+export async function bulkCreateCards(
+  supabase: SupabaseClient,
+  userId: UserId,
+  command: BulkCreateCardsCommand
+): Promise<BulkCreateCardsResponseDto> {
+  // Verify deck ownership and soft-delete status.
+  const { data: deck, error: deckError } = await supabase
+    .from("decks")
+    .select("id")
+    .eq("id", command.deck_id)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (deckError) {
+    throw new Error(`Failed to verify deck: ${deckError.message}`);
+  }
+
+  if (!deck) {
+    throw new Error("DECK_NOT_FOUND");
+  }
+
+  // Compute content hashes with concurrency limiting.
+  let candidatesWithHash: CandidateWithHash[];
+  try {
+    candidatesWithHash = await mapWithConcurrency(command.cards, 10, async (candidate, index) => {
+      const contentHash = await computeContentHash(supabase, candidate.front, candidate.back);
+      return { ...candidate, content_hash: contentHash, index };
+    });
+  } catch (error) {
+    console.error("[POST /api/cards/bulk-create] Content hash computation failed", {
+      userId,
+      deckId: command.deck_id,
+      count: command.cards.length,
+      createdSoFar: 0,
+      skippedSoFar: 0,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error("CONTENT_HASH_FAILED");
+  }
+
+  // Deduplicate within request by content_hash (keep first occurrence).
+  const uniqueByHash = new Map<string, CandidateWithHash>();
+  const skipped: BulkCreateCardsResponseDto["skipped"] = [];
+
+  for (const candidate of candidatesWithHash) {
+    if (uniqueByHash.has(candidate.content_hash)) {
+      skipped.push({
+        reason: "duplicate_in_deck",
+        front: candidate.front,
+        back: candidate.back,
+      });
+      continue;
+    }
+
+    uniqueByHash.set(candidate.content_hash, candidate);
+  }
+
+  const rows = Array.from(uniqueByHash.values()).map((candidate) => ({
+    user_id: userId,
+    deck_id: command.deck_id,
+    front: candidate.front,
+    back: candidate.back,
+    tags: candidate.tags ?? [],
+    ai_generated: candidate.ai_generated,
+    content_hash: candidate.content_hash,
+  }));
+
+  const { data: insertedRows, error: insertError } = await supabase
+    .from("cards")
+    .upsert(rows, {
+      onConflict: "deck_id,content_hash",
+      ignoreDuplicates: true,
+    })
+    .select("id, front, back, content_hash");
+
+  if (insertError) {
+    console.error("[POST /api/cards/bulk-create] Failed to bulk insert cards", {
+      userId,
+      deckId: command.deck_id,
+      errorCode: insertError.code,
+      message: insertError.message,
+      attemptedInserts: rows.length,
+      skippedRequestDuplicates: skipped.length,
+    });
+    throw new Error("BULK_INSERT_FAILED");
+  }
+
+  const inserted = insertedRows ?? [];
+  const insertedHashes = new Set(inserted.map((row) => row.content_hash));
+
+  const created: BulkCreateCardsResponseDto["created"] = inserted.map((row) => ({
+    id: row.id,
+    front: row.front,
+    back: row.back,
+  }));
+
+  for (const candidate of uniqueByHash.values()) {
+    if (!insertedHashes.has(candidate.content_hash)) {
+      skipped.push({
+        reason: "duplicate_in_deck",
+        front: candidate.front,
+        back: candidate.back,
+      });
+    }
+  }
+
+  // Best-effort telemetry; failures are ignored.
+  const eventPromises: Promise<unknown>[] = [];
+  for (const row of inserted) {
+    const candidate = uniqueByHash.get(row.content_hash);
+    if (!candidate) continue;
+
+    const payload = { deck_id: command.deck_id, card_id: row.id };
+
+    if (candidate.edited) {
+      eventPromises.push(createEvent(supabase, userId, "accepted_after_edit", payload));
+      eventPromises.push(createEvent(supabase, userId, "edited", payload));
+    } else {
+      eventPromises.push(createEvent(supabase, userId, "accepted_without_edit", payload));
+    }
+  }
+
+  if (eventPromises.length > 0) {
+    await Promise.allSettled(eventPromises);
+  }
+
+  if (created.length === 0 && uniqueByHash.size > 0 && skipped.length === 0) {
+    console.error("[POST /api/cards/bulk-create] Unexpected empty result (no created, no skipped)", {
+      userId,
+      deckId: command.deck_id,
+      requestCandidates: uniqueByHash.size,
+    });
+  }
+
+  // Spec: still return 201 even if all candidates were duplicates (created=[]).
+  return {
+    created,
+    skipped,
+  };
 }
 
 /**

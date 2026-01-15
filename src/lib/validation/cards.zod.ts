@@ -215,6 +215,47 @@ export const checkCardDuplicateSchema = z.object({
 });
 
 /**
+ * Request body for POST /cards:bulkCreate (implemented at /api/cards/bulk-create).
+ */
+export const bulkCreateCandidateSchema = z.object({
+  front: z
+    .string({ required_error: 'front is required' })
+    .trim()
+    .min(1, 'Front cannot be empty')
+    .max(2000, 'Front must be 2000 characters or less'),
+
+  back: z
+    .string({ required_error: 'back is required' })
+    .trim()
+    .min(1, 'Back cannot be empty')
+    .max(10000, 'Back must be 10000 characters or less'),
+
+  tags: z
+    .array(z.string().max(50, 'Each tag must be 50 characters or less'))
+    .optional()
+    .transform((val) => {
+      if (!val || val.length === 0) return [];
+      return normalizeTags(val);
+    })
+    .pipe(z.array(z.string()).max(20, 'Maximum 20 tags allowed')),
+
+  ai_generated: z.literal(true),
+
+  edited: z.boolean({ required_error: 'edited is required' }),
+});
+
+export const bulkCreateCardsSchema = z.object({
+  deck_id: z
+    .string({ required_error: 'deck_id is required' })
+    .uuid({ message: 'Invalid deck ID format' }),
+
+  cards: z
+    .array(bulkCreateCandidateSchema, { required_error: 'cards is required' })
+    .min(1, 'At least one card is required')
+    .max(100, 'Maximum 100 cards allowed'),
+});
+
+/**
  * Type exports for use in route handlers and service layer.
  */
 export type CardIdParam = z.infer<typeof cardIdParamSchema>;
@@ -222,3 +263,5 @@ export type ListCardsQuery = z.infer<typeof listCardsQuerySchema>;
 export type CreateCardBody = z.infer<typeof createCardSchema>;
 export type UpdateCardBody = z.infer<typeof updateCardSchema>;
 export type CheckCardDuplicateBody = z.infer<typeof checkCardDuplicateSchema>;
+export type BulkCreateCardsBody = z.infer<typeof bulkCreateCardsSchema>;
+export type BulkCreateCandidateBody = z.infer<typeof bulkCreateCandidateSchema>;
