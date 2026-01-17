@@ -1,0 +1,21 @@
+---
+import type { PublicLandingPrivacyVm } from "./public-landing.types"
+
+interface Props {
+  privacy: PublicLandingPrivacyVm
+}
+
+const { privacy } = Astro.props
+---
+
+<aside class="max-w-2xl text-xs text-muted-foreground">
+  <p>{privacy.note}</p>
+  {
+    privacy.privacyHref &&
+      privacy.privacyLabel && (
+        <a class="mt-2 inline-flex text-xs font-medium text-foreground hover:underline" href={privacy.privacyHref}>
+          {privacy.privacyLabel}
+        </a>
+      )
+  }
+</aside>

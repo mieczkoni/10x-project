@@ -1,8 +1,41 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+import Layout from "../layouts/Layout.astro"
+import PublicLandingView from "../components/views/public-landing/PublicLandingView.astro"
+import type { PublicLandingViewModel } from "../components/views/public-landing/public-landing.types"
+
+const vm: PublicLandingViewModel = {
+  hero: {
+    title: "Create flashcards 10x faster with AI",
+    subtitle:
+      "Paste your notes, generate editable cards, and study with spaced repetition without extra friction.",
+    howItWorksSteps: [
+      "Paste your notes or slides",
+      "Generate cards with AI",
+      "Review and edit before saving",
+      "Study with spaced repetition",
+    ],
+  },
+  primaryCtas: [
+    {
+      label: "Create account",
+      href: "/signup",
+      variant: "primary",
+      ariaLabel: "Create a new account",
+    },
+    {
+      label: "Log in",
+      href: "/login",
+      variant: "secondary",
+      ariaLabel: "Log in to your account",
+    },
+  ],
+  privacy: {
+    note:
+      "English-only MVP. You can permanently delete your account and data at any time in Settings.",
+  },
+}
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="10x Cards">
+  <PublicLandingView vm={vm} />
 </Layout>

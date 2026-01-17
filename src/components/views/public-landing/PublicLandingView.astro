@@ -1,0 +1,40 @@
+---
+import LandingHero from "./LandingHero.astro"
+import LandingPrimaryCtas from "./LandingPrimaryCtas.astro"
+import LandingPrivacyGdprNote from "./LandingPrivacyGdprNote.astro"
+import type { PublicLandingCtaVm, PublicLandingViewModel } from "./public-landing.types"
+
+interface Props {
+  vm: PublicLandingViewModel
+}
+
+const { vm } = Astro.props
+
+const normalizedCtas = normalizeCtas(vm.primaryCtas)
+
+function normalizeCtas(ctas: PublicLandingCtaVm[]): PublicLandingCtaVm[] {
+  if (!Array.isArray(ctas)) {
+    return []
+  }
+
+  const seen = new Set<string>()
+
+  return ctas
+    .filter((cta) => Boolean(cta?.label) && Boolean(cta?.href) && cta.href.startsWith("/"))
+    .filter((cta) => {
+      const key = `${cta.label}:${cta.href}`
+      if (seen.has(key)) {
+        return false
+      }
+      seen.add(key)
+      return true
+    })
+    .slice(0, 2)
+}
+---
+
+<main class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-12 px-6 py-16 sm:px-10">
+  <LandingHero hero={vm.hero} />
+  <LandingPrimaryCtas primaryCtas={normalizedCtas} />
+  <LandingPrivacyGdprNote privacy={vm.privacy} />
+</main>

@@ -1,0 +1,31 @@
+---
+import type { PublicLandingHeroVm } from "./public-landing.types"
+
+interface Props {
+  hero: PublicLandingHeroVm
+}
+
+const { hero } = Astro.props
+const steps = hero.howItWorksSteps ?? []
+---
+
+<header class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4">
+    <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+      {hero.title}
+    </h1>
+    <p class="max-w-2xl text-base text-muted-foreground sm:text-lg">
+      {hero.subtitle}
+    </p>
+  </div>
+
+  {
+    steps.length > 0 && (
+      <ol class="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+        {steps.map((step) => (
+          <li class="rounded-lg border border-border bg-card px-4 py-3">{step}</li>
+        ))}
+      </ol>
+    )
+  }
+</header>
