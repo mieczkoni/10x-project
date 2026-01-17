@@ -20,6 +20,10 @@ function normalizeCtas(ctas: PublicLandingCtaVm[]): PublicLandingCtaVm[] {
   const seen = new Set<string>()
 
   return ctas
+    .map((cta) => ({
+      ...cta,
+      href: cta.href === "/app" ? "/dashboard" : cta.href,
+    }))
     .filter((cta) => Boolean(cta?.label) && Boolean(cta?.href) && cta.href.startsWith("/"))
     .filter((cta) => {
       const key = `${cta.label}:${cta.href}`

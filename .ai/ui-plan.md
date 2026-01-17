@@ -149,7 +149,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 - **View name**: Reset Password
 - **View path**: `/reset-password`
 - **Main purpose**: Set new password using reset token/link.
-- **Key information to display**: New password fields; success state leading to login/app.
+- **Key information to display**: New password fields; success state leading to login/dashboard.
 - **Key view components**
   - New password + confirm
   - Token invalid/expired error state
@@ -159,7 +159,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 #### Dashboard (MVP action hub)
 
 - **View name**: Dashboard
-- **View path**: `/app` (or `/dashboard`; choose one canonical post-login path)
+- **View path**: `/dashboard` (canonical post-login path)
 - **Main purpose**: Action hub for “Generate” + “Create deck” + Decks overview (MVP).
 - **Key information to display**
   - Current deck context (selected deck name; or “No deck selected”)
@@ -181,7 +181,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 #### Generate (dedicated workflow route)
 
 - **View name**: Generate
-- **View path**: `/app/generate`
+- **View path**: `/dashboard/generate`
 - **Main purpose**: Paste text → generate candidates → edit/select → bulk save to a deck.
 - **Key information to display**
   - Source text input (with character count + max hint)
@@ -215,7 +215,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 #### Deck detail (primary cards management surface)
 
 - **View name**: Deck Detail
-- **View path**: `/app/decks/:deckId`
+- **View path**: `/dashboard/decks/:deckId`
 - **Main purpose**: Browse, search/filter, create/edit/delete cards in a deck; manage deck context.
 - **Key information to display**
   - Deck header (name, optional description)
@@ -247,7 +247,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 #### Settings (account + privacy)
 
 - **View name**: Settings
-- **View path**: `/app/settings`
+- **View path**: `/dashboard/settings`
 - **Main purpose**: Logout and GDPR account deletion (MVP).
 - **Key information to display**
   - Account identity (email)
@@ -267,7 +267,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 #### Deferred / future views (placeholders for architecture completeness)
 
 - **View name**: Review Session (deferred)
-- **View path**: `/app/decks/:deckId/review`
+- **View path**: `/dashboard/decks/:deckId/review`
 - **Main purpose**: Conduct SRS reviews (blocked by missing SRS storage per API plan).
 - **Key information to display**: Current card front/back reveal, grading buttons, session progress.
 - **Key view components**: Review card, reveal interaction, rating controls, session end summary.
@@ -278,7 +278,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 - **Main purpose**: Call `POST /cards/{cardId}/report`.
 
 - **View name**: Events/telemetry viewer (deferred)
-- **View path**: `/app/debug/events` (admin/debug only)
+- **View path**: `/dashboard/debug/events` (admin/debug only)
 - **Main purpose**: Inspect events via `GET /events`.
 
 ### 3. User Journey Map
@@ -286,10 +286,10 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 #### Primary MVP journey: Generate → Bulk save → Manage deck
 
 1. **Landing** (`/`) → user chooses **Signup** or **Login**.
-2. **Signup/Login** → on success redirect to **Dashboard** (`/app`).
+2. **Signup/Login** → on success redirect to **Dashboard** (`/dashboard`).
 3. **Dashboard**
    - If no deck exists, user clicks **Create deck** → `POST /decks` → deck becomes **current deck**.
-   - User clicks **New generation** → navigates to **Generate** (`/app/generate`).
+   - User clicks **New generation** → navigates to **Generate** (`/dashboard/generate`).
 4. **Generate**
    - User pastes text; optional preflight validate → `POST /generate/validate-input`.
    - User clicks **Generate** → `POST /generate` → candidates appear with duplicate warnings (if any).
@@ -300,7 +300,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
    - UI shows **results summary**:
      - Created cards are marked as saved and deselected.
      - Skipped duplicates remain selected with reason + “Edit and retry” path.
-   - User optionally clicks **View deck** → navigates to `/app/decks/:deckId`.
+   - User optionally clicks **View deck** → navigates to `/dashboard/decks/:deckId`.
 5. **Deck detail**
    - User searches/filters, edits or deletes cards as needed.
 
@@ -320,7 +320,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 
 - **Top-level navigation model**
   - **Public routes**: `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`
-  - **App routes (guarded)**: `/app`, `/app/generate`, `/app/decks/:deckId`, `/app/settings`
+  - **App routes (guarded)**: `/dashboard`, `/dashboard/generate`, `/dashboard/decks/:deckId`, `/dashboard/settings`
 - **Primary navigation entry points**
   - Dashboard CTAs: Generate, Create deck
   - Header deck selector: sets/changes current deck context everywhere

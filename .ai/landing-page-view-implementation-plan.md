@@ -7,7 +7,7 @@ The **Public Landing** view is the app’s public entry point. It explains the p
 - **Route path**: `/`
 - **Astro page file**: `src/pages/index.astro`
 - **Expected redirects (recommended)**:
-  - If a user is already authenticated, redirect from `/` to the canonical post-login route (per UI plan: prefer `/app`).
+  - If a user is already authenticated, redirect from `/` to the canonical post-login route (per UI plan: prefer `/dashboard`).
 
 ## 3. Component Structure
 Implement the page as Astro-first composition (static by default), with optional React only if truly needed.
@@ -30,7 +30,7 @@ High-level hierarchy:
   - Renders `<PublicLandingView />`.
 - **Handled events**:
   - None (page-level). Navigation events are handled by anchor elements.
-  - Optional: if already authenticated, server-side redirect to `/app`.
+  - Optional: if already authenticated, server-side redirect to `/dashboard`.
 - **Validation conditions**:
   - No user input validation.
   - If implementing auth redirect, validate that session retrieval does not throw; on failure, render landing normally (do not break public access).
@@ -178,7 +178,7 @@ No client-side state is required for MVP.
 - **No custom hook needed**: the page is static content + navigation.
 - **Optional server-side auth redirect**:
   - Use request-scoped session retrieval (via existing Supabase/auth integration) in `index.astro` frontmatter.
-  - If authenticated, return a redirect response to `/app`.
+  - If authenticated, return a redirect response to `/dashboard`.
   - If the session cannot be read (unexpected error), fail open and render the landing.
 
 ## 7. API Integration
@@ -222,7 +222,7 @@ Even without forms/API calls, validate at the UI level to prevent broken UX:
   - Ensure global styles and Tailwind setup remain intact; keep components within `Layout`.
 
 ## 11. Implementation Steps
-1. **Decide canonical post-login route**: use `/app` (as suggested by the UI plan) and document it as canonical for redirects.
+1. **Decide canonical post-login route**: use `/dashboard` (as suggested by the UI plan) and document it as canonical for redirects.
 2. **Create the view component**: add `src/components/views/public-landing/PublicLandingView.astro` (and optional subcomponents) to keep `index.astro` minimal.
 3. **Define ViewModel types**: add `PublicLandingViewModel` and related `*Vm` types (prefer view-local types unless you intentionally want them shared).
 4. **Implement layout & content**:
@@ -234,7 +234,7 @@ Even without forms/API calls, validate at the UI level to prevent broken UX:
    - Set a meaningful `Layout` title for the landing.
 6. **(Optional) Add auth-aware redirect**:
    - In `index.astro` frontmatter, check auth session.
-   - If authenticated, redirect to `/app`.
+  - If authenticated, redirect to `/dashboard`.
    - Ensure failures do not block public rendering.
 7. **Accessibility pass**:
    - Verify keyboard navigation, focus states, single H1, descriptive labels.
