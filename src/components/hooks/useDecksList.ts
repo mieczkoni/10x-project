@@ -101,6 +101,11 @@ export function useDecksList(): UseDecksListState {
   const [error, setError] = React.useState<string | null>(null)
   const [debouncedQuery, setDebouncedQuery] = React.useState(query.q)
   const [invalidCursorRetried, setInvalidCursorRetried] = React.useState(false)
+  const loadingInitialRef = React.useRef(false)
+
+  React.useEffect(() => {
+    loadingInitialRef.current = loadingInitial
+  }, [loadingInitial])
 
   React.useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -178,11 +183,11 @@ export function useDecksList(): UseDecksListState {
   )
 
   const refresh = React.useCallback(async () => {
-    if (loadingInitial) {
+    if (loadingInitialRef.current) {
       return
     }
     await loadDecks({ mode: "refresh", cursor: null })
-  }, [loadDecks, loadingInitial])
+  }, [loadDecks])
 
   const loadMore = React.useCallback(async () => {
     if (loadingMore || loadingInitial) {

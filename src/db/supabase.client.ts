@@ -8,6 +8,10 @@ const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
 
 export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
+export function createSupabaseClientWithKey(key: string): SupabaseClient {
+  return createClient<Database>(supabaseUrl, key);
+}
+
 /**
  * Type-safe Supabase client with Database types.
  * Use this type instead of importing from @supabase/supabase-js directly.
