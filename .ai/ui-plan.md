@@ -225,7 +225,6 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
   - Deck header with actions:
     - Rename deck (optional here if not only on Dashboard)
     - Delete deck (confirm)
-    - Set as current deck (if navigated from elsewhere)
   - Cards toolbar:
     - Search input (`q` for `GET /cards`)
     - Tag filter chips / multi-select (maps to `tag`/`tags`)
@@ -241,7 +240,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
   - Pagination controls (cursor-based)
 - **UX, accessibility, and security considerations**
   - Cursor pagination must remain keyboard accessible (Next/Previous).
-  - Provide empty states: “No cards yet” with CTA to Generate or Create a card.
+  - Provide empty states: “No cards yet” with CTAs to Generate or Create a card.
   - For destructive actions, require confirmation and clear success/failure messaging.
 
 #### Settings (account + privacy)

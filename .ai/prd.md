@@ -38,6 +38,7 @@ FR-002 Manual card creation
 
 FR-003 Decks and card management
 - Allow users to create decks, view deck contents, search and filter cards by tag/text, edit cards, and delete cards.
+- Entering a deck automatically sets it as the current deck (no manual control or badge).
 
 FR-004 Simple user accounts
 - Support sign-up, login, logout using email/password; password reset flow required.
@@ -157,6 +158,7 @@ All user stories below are testable by following the acceptance criteria steps.
   - Acceptance Criteria:
     - User can create, rename, and delete decks.
     - Cards saved during generation or manual creation can be assigned to a deck.
+    - Entering a deck detail view sets it as the current deck automatically.
 
 - US-009
   - Title: Browse, search, and filter cards

@@ -1,0 +1,10 @@
+---
+import Layout from "../../../layouts/Layout.astro"
+import { DeckDetailView } from "../../../components/views/deck/DeckDetailView"
+
+const { deckId } = Astro.params
+---
+
+<Layout title="Deck">
+  <DeckDetailView client:load deckId={deckId ?? ""} />
+</Layout>
