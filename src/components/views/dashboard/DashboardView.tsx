@@ -30,11 +30,38 @@ export function DashboardView() {
   const [renameDeckId, setRenameDeckId] = React.useState<DeckId | null>(null)
   const [deleteDeckId, setDeleteDeckId] = React.useState<DeckId | null>(null)
   const [actionStateById, setActionStateById] = React.useState<DeckActionStateById>({})
+  const [showDeckSelectionPrompt, setShowDeckSelectionPrompt] = React.useState(false)
+  const newGenerationHref = React.useMemo(() => {
+    if (!currentDeck.deckId) {
+      return "/dashboard/generate"
+    }
+    return `/dashboard/generate?deckId=${encodeURIComponent(currentDeck.deckId)}`
+  }, [currentDeck.deckId])
+
+  const handleSelectDeck = React.useCallback(
+    (deckId: DeckId) => {
+      setCurrentDeck(deckId)
+      setShowDeckSelectionPrompt(false)
+    },
+    [setCurrentDeck]
+  )
+
+  const handleNewGenerationClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (currentDeck.deckId) {
+        return
+      }
+      event.preventDefault()
+      setShowDeckSelectionPrompt(true)
+    },
+    [currentDeck.deckId]
+  )
 
   const handleCreatedDeck = React.useCallback(
     async (deck: DeckDto) => {
       setCreateDialogOpen(false)
       setCurrentDeck(deck.id)
+      setShowDeckSelectionPrompt(false)
       await refresh()
     },
     [refresh, setCurrentDeck]
@@ -188,8 +215,11 @@ export function DashboardView() {
       <DashboardHeader
         decks={decks}
         currentDeck={currentDeck}
-        onSelectDeck={setCurrentDeck}
+        onSelectDeck={handleSelectDeck}
         onOpenCreateDeck={() => setCreateDialogOpen(true)}
+        onNewGenerationClick={handleNewGenerationClick}
+        showDeckSelectionPrompt={showDeckSelectionPrompt}
+        newGenerationHref={newGenerationHref}
         disabled={loadingInitial}
       />
 

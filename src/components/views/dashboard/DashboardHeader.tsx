@@ -1,3 +1,5 @@
+import type * as React from "react"
+
 import type { DeckId } from "../../../types"
 import type { CurrentDeckVm, DeckListItemVm } from "./dashboard.types"
 import { CurrentDeckSelector } from "./CurrentDeckSelector"
@@ -8,6 +10,8 @@ type DashboardHeaderProps = {
   currentDeck: CurrentDeckVm
   onSelectDeck: (deckId: DeckId) => void
   onOpenCreateDeck: () => void
+  onNewGenerationClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void
+  showDeckSelectionPrompt?: boolean
   newGenerationHref?: string
   disabled?: boolean
 }
@@ -17,6 +21,8 @@ export function DashboardHeader({
   currentDeck,
   onSelectDeck,
   onOpenCreateDeck,
+  onNewGenerationClick,
+  showDeckSelectionPrompt,
   newGenerationHref = "/dashboard/generate",
   disabled = false,
 }: DashboardHeaderProps) {
@@ -34,10 +40,12 @@ export function DashboardHeader({
           value={currentDeck.deckId}
           onChange={onSelectDeck}
           disabled={disabled}
+          showSelectionPrompt={showDeckSelectionPrompt}
         />
         <PrimaryCtas
           onCreateDeckClick={onOpenCreateDeck}
           newGenerationHref={newGenerationHref}
+          onNewGenerationClick={onNewGenerationClick}
           disabled={disabled}
         />
       </div>
