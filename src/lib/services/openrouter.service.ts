@@ -1,5 +1,15 @@
-export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-export const DEFAULT_MODEL = "openrouter/auto";
+import { DEFAULT_MODEL, OpenRouterService, OpenRouterTimeoutError, createOpenRouterServiceFromEnv } from "../openrouter.service";
+import type { OpenRouterResponseFormatJsonSchema } from "../openrouter.service";
+
+export {
+  OpenRouterAuthError,
+  OpenRouterBadRequestError,
+  OpenRouterInvalidResponseError,
+  OpenRouterJsonParseError,
+  OpenRouterRateLimitError,
+  OpenRouterSchemaValidationError,
+  OpenRouterUpstreamError,
+} from "../openrouter.service";
 
 const SYSTEM_PROMPT = [
   "You generate concise flashcard candidates.",
@@ -46,98 +56,65 @@ export class GenerationTimeoutError extends Error {
   }
 }
 
+const generateCandidatesResponseFormat = (maxCards: number): OpenRouterResponseFormatJsonSchema => ({
+  type: "json_schema",
+  json_schema: {
+    name: "generate_candidates",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        candidates: {
+          type: "array",
+          maxItems: maxCards,
+          items: {
+            type: "object",
+            properties: {
+              front: { type: "string", minLength: 1, maxLength: 2000 },
+              back: { type: "string", minLength: 1, maxLength: 10000 },
+              tags: {
+                type: "array",
+                items: { type: "string", minLength: 1, maxLength: 50 },
+                maxItems: 20,
+                default: [],
+              },
+            },
+            required: ["front", "back", "tags"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["candidates"],
+      additionalProperties: false,
+    },
+  },
+});
+
 /**
  * Calls OpenRouter to generate flashcard candidates.
  * Returns the raw assistant message content for downstream parsing/validation.
  */
 export async function callOpenRouterGenerate(params: OpenRouterParams): Promise<OpenRouterResult> {
   const { sourceText, maxCards, language, model, timeoutMs = 15000, repairMessage } = params;
-  const apiKey = import.meta.env.OPENROUTER_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY missing");
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const service = createOpenRouterServiceFromEnv();
+  const messages = [
+    { role: "system" as const, content: SYSTEM_PROMPT },
+    { role: "user" as const, content: buildUserPrompt(sourceText, language, maxCards, repairMessage) },
+  ];
 
   try {
-    const response = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://10x-devs.app",
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: model ?? DEFAULT_MODEL,
-        messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: "user",
-            content: buildUserPrompt(sourceText, language, maxCards, repairMessage),
-          },
-        ],
-        temperature: 0.3,
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "generate_candidates",
-            schema: {
-              type: "object",
-              properties: {
-                candidates: {
-                  type: "array",
-                  maxItems: maxCards,
-                  items: {
-                    type: "object",
-                    properties: {
-                      front: { type: "string", minLength: 1, maxLength: 2000 },
-                      back: { type: "string", minLength: 1, maxLength: 10000 },
-                      tags: {
-                        type: "array",
-                        items: { type: "string", minLength: 1, maxLength: 50 },
-                        maxItems: 20,
-                        default: [],
-                      },
-                    },
-                    required: ["front", "back", "tags"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-              required: ["candidates"],
-              additionalProperties: false,
-            },
-          },
-        },
-      }),
+    const result = await service.chatCompletion({
+      model: model ?? DEFAULT_MODEL,
+      messages,
+      timeoutMs,
+      modelParams: { temperature: 0.3 },
+      responseFormat: generateCandidatesResponseFormat(maxCards),
     });
-
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new Error(`OpenRouter error: ${response.status} ${response.statusText} ${text}`.trim());
-    }
-
-    const json = await response.json();
-    const modelUsed: string = json?.model ?? model ?? DEFAULT_MODEL;
-    const rawContent: string | undefined = json?.choices?.[0]?.message?.content;
-
-    if (!rawContent) {
-      throw new Error("OpenRouter returned empty content");
-    }
-
-    return { modelUsed, rawContent };
+    return { modelUsed: result.modelUsed, rawContent: result.rawContent };
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+    if (error instanceof OpenRouterTimeoutError) {
       throw new GenerationTimeoutError("OpenRouter request timed out");
     }
     throw error;
-  } finally {
-    clearTimeout(timeout);
   }
 }

@@ -6,6 +6,15 @@ import { generateSchema } from '../../../lib/validation/generate.zod';
 import { DeckNotFoundError, generateCandidates, ModelValidationError } from '../../../lib/services/generate.service';
 import { RateLimitError } from '../../../lib/services/rate-limit.service';
 import { GenerationTimeoutError } from '../../../lib/services/openrouter.service';
+import {
+  OpenRouterAuthError,
+  OpenRouterBadRequestError,
+  OpenRouterInvalidResponseError,
+  OpenRouterJsonParseError,
+  OpenRouterRateLimitError,
+  OpenRouterSchemaValidationError,
+  OpenRouterUpstreamError,
+} from '../../../lib/openrouter.service';
 
 export const prerender = false;
 
@@ -63,6 +72,30 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
     if (error instanceof GenerationTimeoutError) {
       return ApiErrors.generationTimeout(undefined, { timeout: true });
+    }
+
+    if (error instanceof OpenRouterAuthError) {
+      return ApiErrors.unauthorized('AI provider authentication failed');
+    }
+
+    if (error instanceof OpenRouterRateLimitError) {
+      return ApiErrors.rateLimited('AI provider rate limit exceeded');
+    }
+
+    if (error instanceof OpenRouterBadRequestError) {
+      return ApiErrors.invalidInput('AI provider rejected the request');
+    }
+
+    if (error instanceof OpenRouterUpstreamError) {
+      return ApiErrors.modelError('AI provider error');
+    }
+
+    if (
+      error instanceof OpenRouterInvalidResponseError ||
+      error instanceof OpenRouterJsonParseError ||
+      error instanceof OpenRouterSchemaValidationError
+    ) {
+      return ApiErrors.modelError('AI provider returned invalid output');
     }
 
     if (error instanceof ModelValidationError) {
