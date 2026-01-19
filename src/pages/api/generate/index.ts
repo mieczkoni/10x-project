@@ -14,7 +14,7 @@ import {
   OpenRouterRateLimitError,
   OpenRouterSchemaValidationError,
   OpenRouterUpstreamError,
-} from '../../../lib/openrouter.service';
+} from '../../../lib/services/openrouter.service';
 
 export const prerender = false;
 
