@@ -1,5 +1,5 @@
 export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-export const DEFAULT_MODEL = "openrouter/auto";
+export const DEFAULT_MODEL = "openai/gpt-4o-mini";
 export const DEFAULT_TIMEOUT_MS = 15000;
 export const DEFAULT_REFERER = "https://10x-devs.app";
 
@@ -540,7 +540,7 @@ export async function callOpenRouterGenerate(params: OpenRouterParams): Promise<
       model: model ?? DEFAULT_MODEL,
       messages,
       timeoutMs,
-      modelParams: { temperature: 0.3 },
+      modelParams: { temperature: 0.7 },
       responseFormat: generateCandidatesResponseFormat(maxCards),
     });
     return { modelUsed: result.modelUsed, rawContent: result.rawContent };
