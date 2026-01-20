@@ -31,12 +31,6 @@ export function GenerateHeader({
           disabled={disabled}
         />
         <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-700">
-          <a
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
-            href="/dashboard"
-          >
-            Back to dashboard
-          </a>
           {currentDeck.deckId ? (
             <a
               className="rounded-md border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
