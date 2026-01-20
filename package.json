@@ -9,7 +9,14 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:unit:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
@@ -33,6 +40,11 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@testing-library/jest-dom": "^6.9.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "@eslint/compat": "1.2.7",
     "@eslint/js": "9.23.0",
     "@typescript-eslint/eslint-plugin": "8.28.0",
@@ -48,9 +60,12 @@
     "eslint-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
     "eslint-plugin-react-hooks": "5.2.0",
     "husky": "9.1.7",
+    "jsdom": "^26.1.0",
     "lint-staged": "15.5.0",
+    "msw": "^2.11.3",
     "prettier-plugin-astro": "0.14.1",
-    "typescript-eslint": "8.28.0"
+    "typescript-eslint": "8.28.0",
+    "vitest": "^3.2.4"
   },
   "lint-staged": {
     "*.{ts,tsx,astro}": [
