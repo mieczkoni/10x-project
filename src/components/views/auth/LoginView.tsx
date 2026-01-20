@@ -6,13 +6,12 @@ import { LoginForm } from "./LoginForm"
 import { LoginHeader } from "./LoginHeader"
 import { LoginLinks } from "./LoginLinks"
 
-export function LoginView() {
-  const { form, errors, submitting, errorSummary, setForm, submit, ensureAnonymousOrRedirect } =
-    useLogin()
+type LoginViewProps = {
+  initialNext?: string | null
+}
 
-  React.useEffect(() => {
-    void ensureAnonymousOrRedirect()
-  }, [ensureAnonymousOrRedirect])
+export function LoginView({ initialNext }: LoginViewProps) {
+  const { form, errors, submitting, errorSummary, setForm, submit } = useLogin(initialNext)
 
   const handleChange = React.useCallback((nextForm: typeof form) => {
     setForm(nextForm)

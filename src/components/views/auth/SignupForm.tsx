@@ -138,7 +138,7 @@ export function SignupForm({
           disabled={submitting}
           required
         />
-        <p className="text-xs text-slate-500">At least 6 characters.</p>
+        <p className="text-xs text-slate-500">At least 8 characters.</p>
         {showPasswordError ? (
           <p id={passwordErrorId} className="text-xs text-red-600">
             {errors.password}

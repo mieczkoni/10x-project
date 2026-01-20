@@ -1,8 +1,7 @@
 import * as React from "react"
 
-import { supabaseClient } from "../../db/supabase.client"
-import { createEvent } from "../../lib/services/events.service"
-import type { UserId } from "../../types"
+import { ApiError, fetchJson } from "../../lib/http/client"
+import type { JsonObject } from "../../types"
 import type {
   SafeReturnToVm,
   SignupErrorVm,
@@ -42,6 +41,9 @@ function validatePassword(password: string): string | null {
   if (!password) {
     return "Password is required."
   }
+  if (password.length < 8) {
+    return "Password must be at least 8 characters."
+  }
   return null
 }
 
@@ -76,35 +78,44 @@ function resolveReturnTo(raw: string | null): SafeReturnToVm {
   return { raw, resolved: raw }
 }
 
-function mapAuthErrorForSignup(error: { status?: number; message?: string } | null): SignupErrorVm {
-  const status = typeof error?.status === "number" ? error.status : null
-  const message = error?.message?.toLowerCase() ?? ""
+function getFieldErrors(details?: JsonObject): SignupFieldErrors | null {
+  if (!details || typeof details !== "object") {
+    return null
+  }
+  const fieldErrors = (details as { fieldErrors?: Record<string, string[]> }).fieldErrors
+  if (!fieldErrors) {
+    return null
+  }
+  return {
+    email: fieldErrors.email?.[0] ?? null,
+    password: fieldErrors.password?.[0] ?? null,
+    confirmPassword: fieldErrors.confirmPassword?.[0] ?? null,
+  }
+}
 
-  if (status === 429 || message.includes("too many") || message.includes("rate")) {
+function mapApiError(error: ApiError): SignupErrorVm {
+  if (error.status === 429 || error.code === "rate_limited") {
     return {
       reason: "rate_limited",
-      message: "Too many attempts. Please wait a moment and try again.",
+      message: "Too many attempts. Please try again in a few minutes.",
     }
   }
 
-  if (message.includes("fetch") || message.includes("network")) {
+  if (error.status === 409 || error.code === "account_exists") {
     return {
-      reason: "network_error",
-      message: "Network error. Check your connection and try again.",
+      reason: "account_exists",
+      message: "Account already exists. Log in instead.",
     }
   }
 
-  if (
-    message.includes("password") &&
-    (message.includes("weak") || message.includes("policy") || message.includes("length"))
-  ) {
+  if (error.status === 400 && error.code === "weak_password") {
     return {
       reason: "weak_password",
       message: "Password doesn't meet the requirements. Please choose a stronger password.",
     }
   }
 
-  if (message.includes("email") && (message.includes("not allowed") || message.includes("invalid"))) {
+  if (error.status === 400 && error.code === "email_not_allowed") {
     return {
       reason: "email_not_allowed",
       message: "Unable to create account with this email. Please try a different email.",
@@ -117,38 +128,30 @@ function mapAuthErrorForSignup(error: { status?: number; message?: string } | nu
   }
 }
 
-export function useSignup() {
+export function useSignup(initialNext?: string | null) {
   const [form, setFormState] = React.useState<SignupFormValues>(DEFAULT_FORM)
   const [fieldErrors, setFieldErrors] = React.useState<SignupFieldErrors>(() =>
     validateForm(DEFAULT_FORM)
   )
   const [submitting, setSubmitting] = React.useState(false)
   const [errorSummary, setErrorSummary] = React.useState<SignupViewModel["errorSummary"]>(null)
-  const [returnTo, setReturnTo] = React.useState<SafeReturnToVm>(DEFAULT_RETURN_TO)
+  const [returnTo, setReturnTo] = React.useState<SafeReturnToVm>(() =>
+    resolveReturnTo(initialNext ?? null)
+  )
 
   React.useEffect(() => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || initialNext != null) {
       return
     }
     const params = new URLSearchParams(window.location.search)
-    setReturnTo(resolveReturnTo(params.get("returnTo")))
-  }, [])
+    setReturnTo(resolveReturnTo(params.get("next")))
+  }, [initialNext])
 
   const setForm = React.useCallback((next: SignupFormValues) => {
     setFormState(next)
     setFieldErrors(validateForm(next))
     setErrorSummary(null)
   }, [])
-
-  const ensureAnonymousOrRedirect = React.useCallback(async () => {
-    if (typeof window === "undefined") {
-      return
-    }
-    const { data } = await supabaseClient.auth.getSession()
-    if (data.session?.user) {
-      window.location.href = returnTo.resolved
-    }
-  }, [returnTo.resolved])
 
   const submit = React.useCallback(
     async (values: SignupFormValues) => {
@@ -173,41 +176,39 @@ export function useSignup() {
       setFormState((prev) => ({ ...prev, email: normalizedEmail }))
 
       try {
-        const { data, error } = await supabaseClient.auth.signUp({
-          email: normalizedEmail,
-          password: values.password,
+        await fetchJson<{ user: { id: string; email: string | null } }>("/api/auth/signup", {
+          method: "POST",
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password: values.password,
+            confirmPassword: values.confirmPassword,
+          }),
         })
 
-        if (error || !data.user) {
-          setErrorSummary(mapAuthErrorForSignup(error))
-          setSubmitting(false)
-          return
-        }
-
-        const onboardingTarget = DEFAULT_RETURN_TO.resolved
-
-        void createEvent(supabaseClient, data.user.id as UserId, "signup", {
-          method: "password",
-          returnTo: returnTo.resolved,
-          onboardingTarget,
-        })
-
-        if (!data.session?.user) {
-          setErrorSummary({
-            reason: "unknown_error",
-            message: "Account created. Please log in to continue.",
-          })
-          setSubmitting(false)
-          return
-        }
-
-        setSubmitting(false)
         window.location.href = returnTo.resolved
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiError) {
+          if (error.status === 400 && error.code === "invalid_input") {
+            const apiFieldErrors = getFieldErrors(error.details)
+            if (apiFieldErrors) {
+              setFieldErrors(apiFieldErrors)
+            }
+            setErrorSummary({
+              reason: "unknown_error",
+              message: "Please fix the highlighted fields.",
+            })
+            return
+          }
+
+          setErrorSummary(mapApiError(error))
+          return
+        }
+
         setErrorSummary({
           reason: "network_error",
           message: "Network error. Check your connection and try again.",
         })
+      } finally {
         setSubmitting(false)
       }
     },
@@ -222,6 +223,5 @@ export function useSignup() {
     returnTo,
     setForm,
     submit,
-    ensureAnonymousOrRedirect,
   }
 }

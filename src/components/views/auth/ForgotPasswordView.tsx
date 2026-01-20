@@ -8,12 +8,7 @@ import { ForgotPasswordHeader } from "./ForgotPasswordHeader"
 import { ForgotPasswordLinks } from "./ForgotPasswordLinks"
 
 export function ForgotPasswordView() {
-  const { form, errors, submitting, status, errorSummary, setForm, submit, reset, ensureAnonymousOrRedirect } =
-    useForgotPassword()
-
-  React.useEffect(() => {
-    void ensureAnonymousOrRedirect()
-  }, [ensureAnonymousOrRedirect])
+  const { form, errors, submitting, status, errorSummary, setForm, submit, reset } = useForgotPassword()
 
   const handleChange = React.useCallback(
     (nextForm: typeof form) => {

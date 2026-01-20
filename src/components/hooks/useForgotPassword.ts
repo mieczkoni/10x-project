@@ -1,6 +1,7 @@
 import * as React from "react"
 
-import { supabaseClient } from "../../db/supabase.client"
+import { ApiError, fetchJson } from "../../lib/http/client"
+import type { JsonObject } from "../../types"
 import type {
   ForgotPasswordErrorVm,
   ForgotPasswordFieldErrors,
@@ -35,21 +36,24 @@ function validateForm(values: ForgotPasswordFormValues): ForgotPasswordFieldErro
   }
 }
 
-function mapResetEmailError(error: { status?: number; message?: string } | null): ForgotPasswordErrorVm {
-  const status = typeof error?.status === "number" ? error.status : null
-  const message = error?.message?.toLowerCase() ?? ""
+function getFieldErrors(details?: JsonObject): ForgotPasswordFieldErrors | null {
+  if (!details || typeof details !== "object") {
+    return null
+  }
+  const fieldErrors = (details as { fieldErrors?: Record<string, string[]> }).fieldErrors
+  if (!fieldErrors) {
+    return null
+  }
+  return {
+    email: fieldErrors.email?.[0] ?? null,
+  }
+}
 
-  if (status === 429 || message.includes("too many") || message.includes("rate")) {
+function mapApiError(error: ApiError): ForgotPasswordErrorVm {
+  if (error.status === 429 || error.code === "rate_limited") {
     return {
       reason: "rate_limited",
       message: "Too many requests. Please wait a moment and try again.",
-    }
-  }
-
-  if (message.includes("fetch") || message.includes("network")) {
-    return {
-      reason: "network_error",
-      message: "Network error. Check your connection and try again.",
     }
   }
 
@@ -82,16 +86,6 @@ export function useForgotPassword() {
     setFieldErrors(validateForm(DEFAULT_FORM))
   }, [])
 
-  const ensureAnonymousOrRedirect = React.useCallback(async () => {
-    if (typeof window === "undefined") {
-      return
-    }
-    const { data } = await supabaseClient.auth.getSession()
-    if (data.session?.user) {
-      window.location.href = "/dashboard"
-    }
-  }, [])
-
   const submit = React.useCallback(
     async (values: ForgotPasswordFormValues) => {
       if (submitting) {
@@ -116,24 +110,37 @@ export function useForgotPassword() {
       setFormState((prev) => ({ ...prev, email: normalizedEmail }))
 
       try {
-        const redirectTo =
-          typeof window === "undefined" ? undefined : `${window.location.origin}/reset-password`
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(normalizedEmail, {
-          redirectTo,
+        await fetchJson<{ ok: true }>("/api/auth/request-password-reset", {
+          method: "POST",
+          body: JSON.stringify({
+            email: normalizedEmail,
+          }),
         })
+        setStatus("confirmed")
+      } catch (error) {
+        if (error instanceof ApiError) {
+          if (error.status === 400 && error.code === "invalid_input") {
+            const apiFieldErrors = getFieldErrors(error.details)
+            if (apiFieldErrors) {
+              setFieldErrors(apiFieldErrors)
+            }
+            setErrorSummary({
+              reason: "unknown_error",
+              message: "Please fix the highlighted fields.",
+            })
+            return
+          }
 
-        if (error) {
-          setErrorSummary(mapResetEmailError(error))
+          setErrorSummary(mapApiError(error))
+          return
         }
 
-        setStatus("confirmed")
-        setSubmitting(false)
-      } catch {
         setErrorSummary({
           reason: "network_error",
           message: "Network error. Check your connection and try again.",
         })
         setStatus("confirmed")
+      } finally {
         setSubmitting(false)
       }
     },
@@ -149,6 +156,5 @@ export function useForgotPassword() {
     setForm,
     submit,
     reset,
-    ensureAnonymousOrRedirect,
   }
 }

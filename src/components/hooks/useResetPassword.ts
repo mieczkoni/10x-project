@@ -1,6 +1,7 @@
 import * as React from "react"
 
-import { supabaseClient } from "../../db/supabase.client"
+import { ApiError, fetchJson } from "../../lib/http/client"
+import type { JsonObject } from "../../types"
 import type {
   RecoveryContextVm,
   RecoveryStatusVm,
@@ -54,35 +55,46 @@ function validateForm(values: ResetPasswordFormValues): ResetPasswordFieldErrors
   }
 }
 
-function mapResetPasswordError(error: { status?: number; message?: string } | null): ResetPasswordErrorVm {
-  const status = typeof error?.status === "number" ? error.status : null
-  const message = error?.message?.toLowerCase() ?? ""
+function getFieldErrors(details?: JsonObject): ResetPasswordFieldErrors | null {
+  if (!details || typeof details !== "object") {
+    return null
+  }
+  const fieldErrors = (details as { fieldErrors?: Record<string, string[]> }).fieldErrors
+  if (!fieldErrors) {
+    return null
+  }
+  return {
+    password: fieldErrors.password?.[0] ?? null,
+    confirmPassword: fieldErrors.confirmPassword?.[0] ?? null,
+  }
+}
 
-  if (status === 429 || message.includes("too many") || message.includes("rate")) {
+function mapApiError(error: ApiError): ResetPasswordErrorVm {
+  if (error.status === 429 || error.code === "rate_limited") {
     return {
       reason: "network_error",
       message: "Too many requests. Please wait a moment and try again.",
     }
   }
 
-  if (message.includes("fetch") || message.includes("network")) {
-    return {
-      reason: "network_error",
-      message: "Network error. Check your connection and try again.",
-    }
-  }
-
-  if (message.includes("password") && (message.includes("weak") || message.includes("policy"))) {
+  if (error.status === 400 && error.code === "weak_password") {
     return {
       reason: "weak_password",
       message: "Password doesn't meet the requirements. Please choose a stronger password.",
     }
   }
 
-  if (message.includes("length") && message.includes("password")) {
+  if (error.status === 401 && error.code === "unauthorized") {
     return {
-      reason: "weak_password",
-      message: "Password doesn't meet the requirements. Please choose a stronger password.",
+      reason: "recovery_invalid",
+      message: INVALID_RECOVERY_MESSAGE,
+    }
+  }
+
+  if (error.status === 400 && error.code === "recovery_invalid") {
+    return {
+      reason: "recovery_invalid",
+      message: INVALID_RECOVERY_MESSAGE,
     }
   }
 
@@ -149,34 +161,10 @@ export function useResetPassword() {
     setRecoveryStatus("checking")
     setErrorSummary(null)
 
-    const { data: sessionData } = await supabaseClient.auth.getSession()
-    if (sessionData.session?.user) {
-      const { context } = getRecoveryParams()
-      setRecoveryContext(context)
-      setRecoveryStatus("ready")
-      return
-    }
-
-    const { accessToken, refreshToken, code, context } = getRecoveryParams()
+    const { accessToken, refreshToken, code, type, context } = getRecoveryParams()
     setRecoveryContext(context)
 
-    const auth = supabaseClient.auth as typeof supabaseClient.auth & {
-      getSessionFromUrl?: (options: { storeSession: boolean }) => Promise<{
-        data: { session: unknown | null }
-        error: { message?: string } | null
-      }>
-      exchangeCodeForSession?: (codeValue: string) => Promise<{
-        data: { session: unknown | null }
-        error: { message?: string } | null
-      }>
-    }
-
-    if (typeof auth.getSessionFromUrl === "function" && (accessToken || refreshToken || code)) {
-      const { data, error } = await auth.getSessionFromUrl({ storeSession: true })
-      if (data?.session && !error) {
-        setRecoveryStatus("ready")
-        return
-      }
+    if (type && type !== "recovery") {
       setRecoveryStatus("invalid")
       setErrorSummary({
         reason: "recovery_invalid",
@@ -185,45 +173,8 @@ export function useResetPassword() {
       return
     }
 
-    if (code && typeof auth.exchangeCodeForSession === "function") {
-      const { data, error } = await auth.exchangeCodeForSession(code)
-      if (data?.session && !error) {
-        setRecoveryStatus("ready")
-        return
-      }
-      setRecoveryStatus("invalid")
-      setErrorSummary({
-        reason: "recovery_invalid",
-        message: INVALID_RECOVERY_MESSAGE,
-      })
-      return
-    }
-
-    if (accessToken || refreshToken) {
-      if (!accessToken || !refreshToken) {
-        setRecoveryStatus("invalid")
-        setErrorSummary({
-          reason: "recovery_invalid",
-          message: INVALID_RECOVERY_MESSAGE,
-        })
-        return
-      }
-
-      const { data, error } = await supabaseClient.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      })
-
-      if (data?.session && !error) {
-        setRecoveryStatus("ready")
-        return
-      }
-
-      setRecoveryStatus("invalid")
-      setErrorSummary({
-        reason: "recovery_invalid",
-        message: INVALID_RECOVERY_MESSAGE,
-      })
+    if (code || (accessToken && refreshToken)) {
+      setRecoveryStatus("ready")
       return
     }
 
@@ -262,20 +213,45 @@ export function useResetPassword() {
       setErrorSummary(null)
 
       try {
-        const { error } = await supabaseClient.auth.updateUser({ password: values.password })
-        if (error) {
-          setErrorSummary(mapResetPasswordError(error))
-          setSubmitting(false)
+        const { accessToken, refreshToken, code } = getRecoveryParams()
+        await fetchJson<{ ok: true }>("/api/auth/update-password", {
+          method: "POST",
+          body: JSON.stringify({
+            password: values.password,
+            confirmPassword: values.confirmPassword,
+            accessToken,
+            refreshToken,
+            code,
+          }),
+        })
+        setStep("success")
+      } catch (error) {
+        if (error instanceof ApiError) {
+          if (error.status === 400 && error.code === "invalid_input") {
+            const apiFieldErrors = getFieldErrors(error.details)
+            if (apiFieldErrors) {
+              setFieldErrors(apiFieldErrors)
+            }
+            setErrorSummary({
+              reason: "unknown_error",
+              message: "Please fix the highlighted fields.",
+            })
+            return
+          }
+
+          const mapped = mapApiError(error)
+          setErrorSummary(mapped)
+          if (mapped.reason === "recovery_invalid") {
+            setRecoveryStatus("invalid")
+          }
           return
         }
 
-        setSubmitting(false)
-        setStep("success")
-      } catch {
         setErrorSummary({
           reason: "network_error",
           message: "Network error. Check your connection and try again.",
         })
+      } finally {
         setSubmitting(false)
       }
     },

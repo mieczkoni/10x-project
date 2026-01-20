@@ -6,13 +6,13 @@ import { SignupForm } from "./SignupForm"
 import { SignupHeader } from "./SignupHeader"
 import { SignupLinks } from "./SignupLinks"
 
-export function SignupView() {
-  const { form, errors, submitting, errorSummary, setForm, submit, ensureAnonymousOrRedirect, returnTo } =
-    useSignup()
+type SignupViewProps = {
+  initialNext?: string | null
+}
 
-  React.useEffect(() => {
-    void ensureAnonymousOrRedirect()
-  }, [ensureAnonymousOrRedirect])
+export function SignupView({ initialNext }: SignupViewProps) {
+  const { form, errors, submitting, errorSummary, setForm, submit, returnTo } =
+    useSignup(initialNext)
 
   const handleChange = React.useCallback(
     (nextForm: typeof form) => {
@@ -32,7 +32,7 @@ export function SignupView() {
     if (!returnTo.raw) {
       return "/login"
     }
-    return `/login?returnTo=${encodeURIComponent(returnTo.raw)}`
+    return `/login?next=${encodeURIComponent(returnTo.raw)}`
   }, [returnTo.raw])
 
   return (

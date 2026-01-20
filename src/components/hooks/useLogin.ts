@@ -1,8 +1,7 @@
 import * as React from "react"
 
-import { supabaseClient } from "../../db/supabase.client"
-import { createEvent } from "../../lib/services/events.service"
-import type { UserId } from "../../types"
+import { ApiError, fetchJson } from "../../lib/http/client"
+import type { JsonObject } from "../../types"
 import type {
   LoginErrorVm,
   LoginFieldErrors,
@@ -41,6 +40,9 @@ function validatePassword(password: string): string | null {
   if (!password) {
     return "Password is required."
   }
+  if (password.length < 8) {
+    return "Password must be at least 8 characters."
+  }
   return null
 }
 
@@ -64,25 +66,29 @@ function resolveReturnTo(raw: string | null): SafeReturnToVm {
   return { raw, resolved: raw }
 }
 
-function mapAuthError(error: { status?: number; message?: string } | null): LoginErrorVm {
-  const status = typeof error?.status === "number" ? error.status : null
-  const message = error?.message?.toLowerCase() ?? ""
+function getFieldErrors(details?: JsonObject): LoginFieldErrors | null {
+  if (!details || typeof details !== "object") {
+    return null
+  }
+  const fieldErrors = (details as { fieldErrors?: Record<string, string[]> }).fieldErrors
+  if (!fieldErrors) {
+    return null
+  }
+  return {
+    email: fieldErrors.email?.[0] ?? null,
+    password: fieldErrors.password?.[0] ?? null,
+  }
+}
 
-  if (status === 429 || message.includes("too many") || message.includes("rate")) {
+function mapApiError(error: ApiError): LoginErrorVm {
+  if (error.status === 429 || error.code === "rate_limited") {
     return {
       reason: "rate_limited",
-      message: "Too many attempts. Please wait a moment and try again.",
+      message: "Too many attempts. Please try again in a few minutes.",
     }
   }
 
-  if (message.includes("fetch") || message.includes("network")) {
-    return {
-      reason: "network_error",
-      message: "Network error. Check your connection and try again.",
-    }
-  }
-
-  if (status === 400 || status === 401 || message.includes("invalid login credentials")) {
+  if (error.status === 401 || error.code === "invalid_credentials") {
     return {
       reason: "invalid_credentials",
       message: "Invalid email or password.",
@@ -95,38 +101,30 @@ function mapAuthError(error: { status?: number; message?: string } | null): Logi
   }
 }
 
-export function useLogin() {
+export function useLogin(initialNext?: string | null) {
   const [form, setFormState] = React.useState<LoginFormValues>(DEFAULT_FORM)
   const [fieldErrors, setFieldErrors] = React.useState<LoginFieldErrors>(() =>
     validateForm(DEFAULT_FORM)
   )
   const [submitting, setSubmitting] = React.useState(false)
   const [errorSummary, setErrorSummary] = React.useState<LoginViewModel["errorSummary"]>(null)
-  const [returnTo, setReturnTo] = React.useState<SafeReturnToVm>(DEFAULT_RETURN_TO)
+  const [returnTo, setReturnTo] = React.useState<SafeReturnToVm>(() =>
+    resolveReturnTo(initialNext ?? null)
+  )
 
   React.useEffect(() => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || initialNext != null) {
       return
     }
     const params = new URLSearchParams(window.location.search)
-    setReturnTo(resolveReturnTo(params.get("returnTo")))
-  }, [])
+    setReturnTo(resolveReturnTo(params.get("next")))
+  }, [initialNext])
 
   const setForm = React.useCallback((next: LoginFormValues) => {
     setFormState(next)
     setFieldErrors(validateForm(next))
     setErrorSummary(null)
   }, [])
-
-  const ensureAnonymousOrRedirect = React.useCallback(async () => {
-    if (typeof window === "undefined") {
-      return
-    }
-    const { data } = await supabaseClient.auth.getSession()
-    if (data.session?.user) {
-      window.location.href = returnTo.resolved
-    }
-  }, [returnTo.resolved])
 
   const submit = React.useCallback(
     async (values: LoginFormValues) => {
@@ -151,29 +149,38 @@ export function useLogin() {
       setFormState((prev) => ({ ...prev, email: normalizedEmail }))
 
       try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email: normalizedEmail,
-          password: values.password,
+        await fetchJson<{ user: { id: string; email: string | null } }>("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password: values.password,
+          }),
         })
 
-        if (error || !data.user) {
-          setErrorSummary(mapAuthError(error))
-          setSubmitting(false)
+        window.location.href = returnTo.resolved
+      } catch (error) {
+        if (error instanceof ApiError) {
+          if (error.status === 400 && error.code === "invalid_input") {
+            const apiFieldErrors = getFieldErrors(error.details)
+            if (apiFieldErrors) {
+              setFieldErrors(apiFieldErrors)
+            }
+            setErrorSummary({
+              reason: "unknown_error",
+              message: "Please fix the highlighted fields.",
+            })
+            return
+          }
+
+          setErrorSummary(mapApiError(error))
           return
         }
 
-        void createEvent(supabaseClient, data.user.id as UserId, "login", {
-          method: "password",
-          returnTo: returnTo.resolved,
-        })
-
-        setSubmitting(false)
-        window.location.href = returnTo.resolved
-      } catch {
         setErrorSummary({
           reason: "network_error",
           message: "Network error. Check your connection and try again.",
         })
+      } finally {
         setSubmitting(false)
       }
     },
@@ -188,6 +195,5 @@ export function useLogin() {
     returnTo,
     setForm,
     submit,
-    ensureAnonymousOrRedirect,
   }
 }

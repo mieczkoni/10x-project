@@ -13,6 +13,7 @@ export type SignupFieldErrors = {
 export type SignupFailureReason =
   | "rate_limited"
   | "network_error"
+  | "account_exists"
   | "email_not_allowed"
   | "weak_password"
   | "unknown_error"
