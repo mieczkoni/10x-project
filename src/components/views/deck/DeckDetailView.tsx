@@ -4,6 +4,7 @@ import type { CardDto, CardId, DeckDto, DeckId, UpdateDeckCommand } from "../../
 import { ApiError, fetchJson } from "../../../lib/http/client"
 import { useCardsList } from "../../hooks/useCardsList"
 import { useDeck } from "../../hooks/useDeck"
+import { AppHeader } from "../app/AppHeader"
 import { DeleteDeckConfirmDialog } from "../dashboard/DeleteDeckConfirmDialog"
 import { RenameDeckDialog } from "../dashboard/RenameDeckDialog"
 import type { DeckListItemVm } from "../dashboard/dashboard.types"
@@ -26,6 +27,7 @@ import { NewCardDialog } from "./NewCardDialog"
 
 type DeckDetailViewProps = {
   deckId: string
+  userEmail?: string | null
 }
 
 const DEFAULT_QUERY: CardsQueryVm = {
@@ -55,7 +57,7 @@ function toDashboardDeckVm(deck: DeckDetailVm): DeckListItemVm {
   }
 }
 
-export function DeckDetailView({ deckId }: DeckDetailViewProps) {
+export function DeckDetailView({ deckId, userEmail }: DeckDetailViewProps) {
   const deckIdValue = deckId?.trim()
   const isDeckIdValid = Boolean(deckIdValue && isValidUuid(deckIdValue))
   const normalizedDeckId = isDeckIdValid ? (deckIdValue as DeckId) : null
@@ -300,146 +302,154 @@ export function DeckDetailView({ deckId }: DeckDetailViewProps) {
 
   if (!isDeckIdValid) {
     return (
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-6">
-          <h1 className="text-lg font-semibold text-slate-900">Deck not found</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            The deck link is invalid. Return to your dashboard to select another deck.
-          </p>
-          <a
-            className="mt-4 inline-flex h-9 items-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
-            href="/dashboard"
-          >
-            Back to dashboard
-          </a>
-        </div>
-      </main>
+      <div className="min-h-screen bg-slate-50">
+        <AppHeader userEmail={userEmail} />
+        <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
+            <h1 className="text-lg font-semibold text-slate-900">Deck not found</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              The deck link is invalid. Return to your dashboard to select another deck.
+            </p>
+            <a
+              className="mt-4 inline-flex h-9 items-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
+              href="/dashboard"
+            >
+              Back to dashboard
+            </a>
+          </div>
+        </main>
+      </div>
     )
   }
 
   if (notFound) {
     return (
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-6">
-          <h1 className="text-lg font-semibold text-slate-900">Deck not found</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            This deck no longer exists or you do not have access.
-          </p>
-          <a
-            className="mt-4 inline-flex h-9 items-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
-            href="/dashboard"
-          >
-            Back to dashboard
-          </a>
-        </div>
-      </main>
+      <div className="min-h-screen bg-slate-50">
+        <AppHeader userEmail={userEmail} />
+        <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
+            <h1 className="text-lg font-semibold text-slate-900">Deck not found</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              This deck no longer exists or you do not have access.
+            </p>
+            <a
+              className="mt-4 inline-flex h-9 items-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
+              href="/dashboard"
+            >
+              Back to dashboard
+            </a>
+          </div>
+        </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <p>{error}</p>
-          <button
-            type="button"
-            className="mt-3 inline-flex h-9 items-center rounded-md border border-red-200 bg-white px-3 text-sm font-medium text-red-700"
-            onClick={() => void refresh()}
-          >
-            Retry
-          </button>
-        </div>
-      ) : null}
+    <div className="min-h-screen bg-slate-50">
+      <AppHeader userEmail={userEmail} />
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
+        {error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <p>{error}</p>
+            <button
+              type="button"
+              className="mt-3 inline-flex h-9 items-center rounded-md border border-red-200 bg-white px-3 text-sm font-medium text-red-700"
+              onClick={() => void refresh()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : null}
 
-      {deckVm ? (
-        <DeckDetailHeader
-          deck={deckVm}
-          action={deckAction}
-          disabled={loading || deckAction.isDeleting || deckAction.isRenaming}
-          onRename={() => setRenameOpen(true)}
-          onDelete={() => setDeleteOpen(true)}
+        {deckVm ? (
+          <DeckDetailHeader
+            deck={deckVm}
+            action={deckAction}
+            disabled={loading || deckAction.isDeleting || deckAction.isRenaming}
+            onRename={() => setRenameOpen(true)}
+            onDelete={() => setDeleteOpen(true)}
+          />
+        ) : (
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
+            <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-100" />
+          </div>
+        )}
+
+        <CardsToolbar
+          query={query}
+          availableTags={availableTags}
+          disabled={loading || cardsState.loadingInitial}
+          onQueryChange={handleQueryChange}
+          onOpenNewCard={handleOpenNewCard}
         />
-      ) : (
-        <div className="rounded-lg border border-slate-200 bg-white p-6">
-          <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
-          <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-100" />
-        </div>
-      )}
 
-      <CardsToolbar
-        query={query}
-        availableTags={availableTags}
-        disabled={loading || cardsState.loadingInitial}
-        onQueryChange={handleQueryChange}
-        onOpenNewCard={handleOpenNewCard}
-      />
-
-      <CardsList
-        cards={cardsState.cards}
-        actions={cardActions}
-        loading={cardsState.loadingInitial}
-        error={cardsState.error}
-        hasFilters={hasFilters}
-        deckId={normalizedDeckId}
-        onEdit={handleEditCard}
-        onDelete={handleDeleteCardRequest}
-        onOpenNewCard={handleOpenNewCard}
-      />
-
-      <CardsPagination
-        page={cardsState.page}
-        loading={cardsState.loadingPage}
-        onNext={cardsState.next}
-        onPrev={cardsState.prev}
-        onRefresh={cardsState.refresh}
-      />
-
-      <RenameDeckDialog
-        open={renameOpen}
-        deck={deckVm ? toDashboardDeckVm(deckVm) : null}
-        onOpenChange={setRenameOpen}
-        onSubmit={handleRenameSubmit}
-      />
-
-      <DeleteDeckConfirmDialog
-        open={deleteOpen}
-        deckName={deckVm?.name ?? "this deck"}
-        onOpenChange={setDeleteOpen}
-        onConfirm={handleDeleteConfirm}
-      />
-
-      {normalizedDeckId ? (
-        <NewCardDialog
-          open={newCardOpen}
+        <CardsList
+          cards={cardsState.cards}
+          actions={cardActions}
+          loading={cardsState.loadingInitial}
+          error={cardsState.error}
+          hasFilters={hasFilters}
           deckId={normalizedDeckId}
-          onOpenChange={setNewCardOpen}
-          onCreated={handleCardCreated}
+          onEdit={handleEditCard}
+          onDelete={handleDeleteCardRequest}
+          onOpenNewCard={handleOpenNewCard}
         />
-      ) : null}
 
-      <EditCardDialog
-        open={Boolean(editCardId)}
-        card={editCard}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditCardId(null)
-          }
-        }}
-        onSaved={handleCardSaved}
-        onSavingChange={handleEditSavingChange}
-      />
+        <CardsPagination
+          page={cardsState.page}
+          loading={cardsState.loadingPage}
+          onNext={cardsState.next}
+          onPrev={cardsState.prev}
+          onRefresh={cardsState.refresh}
+        />
 
-      <DeleteCardConfirmDialog
-        open={Boolean(deleteCardId)}
-        frontPreview={deleteCard?.front ?? "this card"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeleteCardId(null)
-          }
-        }}
-        onConfirm={handleDeleteCardConfirm}
-      />
+        <RenameDeckDialog
+          open={renameOpen}
+          deck={deckVm ? toDashboardDeckVm(deckVm) : null}
+          onOpenChange={setRenameOpen}
+          onSubmit={handleRenameSubmit}
+        />
 
-    </main>
+        <DeleteDeckConfirmDialog
+          open={deleteOpen}
+          deckName={deckVm?.name ?? "this deck"}
+          onOpenChange={setDeleteOpen}
+          onConfirm={handleDeleteConfirm}
+        />
+
+        {normalizedDeckId ? (
+          <NewCardDialog
+            open={newCardOpen}
+            deckId={normalizedDeckId}
+            onOpenChange={setNewCardOpen}
+            onCreated={handleCardCreated}
+          />
+        ) : null}
+
+        <EditCardDialog
+          open={Boolean(editCardId)}
+          card={editCard}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditCardId(null)
+            }
+          }}
+          onSaved={handleCardSaved}
+          onSavingChange={handleEditSavingChange}
+        />
+
+        <DeleteCardConfirmDialog
+          open={Boolean(deleteCardId)}
+          frontPreview={deleteCard?.front ?? "this card"}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeleteCardId(null)
+            }
+          }}
+          onConfirm={handleDeleteCardConfirm}
+        />
+      </main>
+    </div>
   )
 }

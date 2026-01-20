@@ -3,8 +3,9 @@ import Layout from "../../../layouts/Layout.astro"
 import { DeckDetailView } from "../../../components/views/deck/DeckDetailView"
 
 const { deckId } = Astro.params
+const user = Astro.locals.user
 ---
 
 <Layout title="Deck">
-  <DeckDetailView client:load deckId={deckId ?? ""} />
+  <DeckDetailView client:load deckId={deckId ?? ""} userEmail={user?.email ?? null} />
 </Layout>

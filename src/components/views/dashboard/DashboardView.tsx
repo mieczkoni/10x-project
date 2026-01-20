@@ -3,6 +3,7 @@ import * as React from "react"
 import type { DeckDto, DeckId, UpdateDeckCommand } from "../../../types"
 import { useCurrentDeck } from "../../hooks/useCurrentDeck"
 import { useDecksList } from "../../hooks/useDecksList"
+import { AppHeader } from "../app/AppHeader"
 import { CreateDeckDialog } from "./CreateDeckDialog"
 import { DashboardHeader } from "./DashboardHeader"
 import { DecksSection } from "./DecksSection"
@@ -12,7 +13,11 @@ import { toDeckListItemVm } from "./dashboard.types"
 import { RenameDeckDialog } from "./RenameDeckDialog"
 import { ApiError, fetchJson } from "../../../lib/http/client"
 
-export function DashboardView() {
+type DashboardViewProps = {
+  userEmail?: string | null
+}
+
+export function DashboardView({ userEmail }: DashboardViewProps) {
   const {
     decks,
     loadingInitial,
@@ -211,60 +216,63 @@ export function DashboardView() {
   const deleteDeck = deleteDeckId ? decks.find((deck) => deck.id === deleteDeckId) ?? null : null
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      <DashboardHeader
-        decks={decks}
-        currentDeck={currentDeck}
-        onSelectDeck={handleSelectDeck}
-        onOpenCreateDeck={() => setCreateDialogOpen(true)}
-        onNewGenerationClick={handleNewGenerationClick}
-        showDeckSelectionPrompt={showDeckSelectionPrompt}
-        newGenerationHref={newGenerationHref}
-        disabled={loadingInitial}
-      />
+    <div className="min-h-screen bg-slate-50">
+      <AppHeader userEmail={userEmail} />
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
+        <DashboardHeader
+          decks={decks}
+          currentDeck={currentDeck}
+          onSelectDeck={handleSelectDeck}
+          onOpenCreateDeck={() => setCreateDialogOpen(true)}
+          onNewGenerationClick={handleNewGenerationClick}
+          showDeckSelectionPrompt={showDeckSelectionPrompt}
+          newGenerationHref={newGenerationHref}
+          disabled={loadingInitial}
+        />
 
-      <DecksSection
-        query={query}
-        onQueryChange={setQuery}
-        decks={decks}
-        page={page}
-        loading={loadingInitial}
-        loadingMore={loadingMore}
-        error={error}
-        actions={actionStateById}
-        onRename={handleRenameRequest}
-        onDelete={handleDeleteRequest}
-        onLoadMore={loadMore}
-        onRefresh={refresh}
-      />
+        <DecksSection
+          query={query}
+          onQueryChange={setQuery}
+          decks={decks}
+          page={page}
+          loading={loadingInitial}
+          loadingMore={loadingMore}
+          error={error}
+          actions={actionStateById}
+          onRename={handleRenameRequest}
+          onDelete={handleDeleteRequest}
+          onLoadMore={loadMore}
+          onRefresh={refresh}
+        />
 
-      <CreateDeckDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onCreated={handleCreatedDeck}
-      />
+        <CreateDeckDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreated={handleCreatedDeck}
+        />
 
-      <RenameDeckDialog
-        open={Boolean(renameDeckId)}
-        deck={renameDeck}
-        onOpenChange={(open) => {
-          if (!open) {
-            setRenameDeckId(null)
-          }
-        }}
-        onSubmit={handleRenameSubmit}
-      />
+        <RenameDeckDialog
+          open={Boolean(renameDeckId)}
+          deck={renameDeck}
+          onOpenChange={(open) => {
+            if (!open) {
+              setRenameDeckId(null)
+            }
+          }}
+          onSubmit={handleRenameSubmit}
+        />
 
-      <DeleteDeckConfirmDialog
-        open={Boolean(deleteDeckId)}
-        deckName={deleteDeck?.name ?? "this deck"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeleteDeckId(null)
-          }
-        }}
-        onConfirm={handleDeleteConfirm}
-      />
-    </main>
+        <DeleteDeckConfirmDialog
+          open={Boolean(deleteDeckId)}
+          deckName={deleteDeck?.name ?? "this deck"}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeleteDeckId(null)
+            }
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
+      </main>
+    </div>
   )
 }

@@ -8,7 +8,10 @@
   - **Public**: landing + auth (no user data)
   - **App (auth-required)**: dashboard, generate, deck detail, settings
 - **Global app shell (auth-required)**
-  - **Header**: product link (Dashboard), **Current deck selector**, quick actions (Generate / Create deck), account menu (Settings / Logout)
+  - **HeaderNav** (app routes only; excluded from `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`):
+    - **Application name (brand)**: clickable link to `/dashboard` (this is the primary “go to dashboard” navigation; no separate Dashboard button)
+    - **Current user**: show email + **Logout** button (calls `POST /api/auth/logout`, then redirect to `/`)
+    - **Optional app controls (MVP+/later)**: **Current deck selector**, quick actions (Generate / Create deck), account menu (Settings)
   - **Content**: route outlet + shared feedback surfaces (toasts/alerts)
 - **State model**
   - **Server state (cached queries)**: decks, deck detail, cards list (by deckId + filters), card mutations, deck mutations
@@ -320,6 +323,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 - **Top-level navigation model**
   - **Public routes**: `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`
   - **App routes (guarded)**: `/dashboard`, `/dashboard/generate`, `/dashboard/decks/:deckId`, `/dashboard/settings`
+  - **Header visibility**: `HeaderNav` renders on all **App routes** and is intentionally not rendered on **Public routes**
 - **Primary navigation entry points**
   - Dashboard CTAs: Generate, Create deck
   - Header deck selector: sets/changes current deck context everywhere
@@ -337,7 +341,7 @@ Below, “Auth-required” implies: guarded route + token-attached API calls + c
 - **AuthBoundary (route guard)**: protects app routes; manages redirect-back and `401` handling behavior.
 - **ApiClient / fetch wrapper**: attaches bearer token; normalizes errors; provides consistent “loading/error/empty” patterns.
 - **AppShell**
-  - **HeaderNav**: brand → Dashboard; current deck selector; quick actions; account menu.
+  - **HeaderNav**: application name (brand) links to `/dashboard`; current user email + Logout (`POST /api/auth/logout`); optional deck selector; quick actions; account menu (Settings).
   - **GlobalFeedback**: toast/alert region for success/error summaries.
 - **CurrentDeckSelector**: shared deck context control (dropdown/search); supports “no selection” state.
 - **DecksOverview**

@@ -1,8 +1,10 @@
 ---
 import Layout from "../../../layouts/Layout.astro"
 import { GenerateView } from "../../../components/views/generate/GenerateView"
+
+const user = Astro.locals.user
 ---
 
 <Layout title="Generate">
-  <GenerateView client:load />
+  <GenerateView client:load userEmail={user?.email ?? null} />
 </Layout>

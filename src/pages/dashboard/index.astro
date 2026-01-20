@@ -1,8 +1,10 @@
 ---
 import Layout from "../../layouts/Layout.astro"
 import { DashboardView } from "../../components/views/dashboard/DashboardView"
+
+const user = Astro.locals.user
 ---
 
 <Layout title="Dashboard">
-  <DashboardView client:load />
+  <DashboardView client:load userEmail={user?.email ?? null} />
 </Layout>

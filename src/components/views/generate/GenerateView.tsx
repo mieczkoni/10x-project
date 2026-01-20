@@ -3,6 +3,7 @@ import * as React from "react"
 import { useCurrentDeck } from "../../hooks/useCurrentDeck"
 import { useDecksList } from "../../hooks/useDecksList"
 import { useGenerateWorkflow } from "../../hooks/useGenerateWorkflow"
+import { AppHeader } from "../app/AppHeader"
 import { BulkActionBar } from "./BulkActionBar"
 import { CandidatesPanel } from "./CandidatesPanel"
 import { GenerateErrorBanner } from "./GenerateErrorBanner"
@@ -11,7 +12,11 @@ import { SaveResultsPanel } from "./SaveResultsPanel"
 import { SelectDeckDialog } from "./SelectDeckDialog"
 import { SourceTextPanel } from "./SourceTextPanel"
 
-export function GenerateView() {
+type GenerateViewProps = {
+  userEmail?: string | null
+}
+
+export function GenerateView({ userEmail }: GenerateViewProps) {
   const { decks, loadingInitial } = useDecksList()
   const { currentDeck, setCurrentDeck } = useCurrentDeck(decks)
   const workflow = useGenerateWorkflow(currentDeck.deckId, {
@@ -87,68 +92,71 @@ export function GenerateView() {
   const canSave = selectedCount > 0 && !state.loading.saving
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      <GenerateHeader
-        decks={decks}
-        currentDeck={currentDeck}
-        onSelectDeck={setCurrentDeck}
-        disabled={loadingInitial || isDeckLocked}
-      />
+    <div className="min-h-screen bg-slate-50">
+      <AppHeader userEmail={userEmail} />
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
+        <GenerateHeader
+          decks={decks}
+          currentDeck={currentDeck}
+          onSelectDeck={setCurrentDeck}
+          disabled={loadingInitial || isDeckLocked}
+        />
 
-      <GenerateErrorBanner errors={state.errors} />
+        <GenerateErrorBanner errors={state.errors} />
 
-      <SourceTextPanel
-        source={state.source}
-        preflight={state.preflight}
-        options={state.options}
-        generating={state.loading.generating}
-        onSourceChange={workflow.setSourceText}
-        onValidate={workflow.validateInput}
-        onGenerate={workflow.generate}
-        onOptionsChange={workflow.updateOptions}
-      />
+        <SourceTextPanel
+          source={state.source}
+          preflight={state.preflight}
+          options={state.options}
+          generating={state.loading.generating}
+          onSourceChange={workflow.setSourceText}
+          onValidate={workflow.validateInput}
+          onGenerate={workflow.generate}
+          onOptionsChange={workflow.updateOptions}
+        />
 
-      <CandidatesPanel
-        candidates={state.candidates}
-        onToggleSelected={workflow.toggleCandidateSelected}
-        onEdit={workflow.editCandidateStart}
-        onRemove={workflow.removeCandidate}
-        onEditSave={workflow.editCandidateSave}
-        onEditCancel={workflow.editCandidateCancel}
-        disabled={state.loading.generating || state.loading.saving}
-      />
+        <CandidatesPanel
+          candidates={state.candidates}
+          onToggleSelected={workflow.toggleCandidateSelected}
+          onEdit={workflow.editCandidateStart}
+          onRemove={workflow.removeCandidate}
+          onEditSave={workflow.editCandidateSave}
+          onEditCancel={workflow.editCandidateCancel}
+          disabled={state.loading.generating || state.loading.saving}
+        />
 
-      <BulkActionBar
-        selectedCount={selectedCount}
-        saving={state.loading.saving}
-        canSave={canSave}
-        onSaveSelected={() => {
-          if (!currentDeck.deckId) {
-            setSelectDeckOpen(true)
-            return
-          }
-          void workflow.saveSelected({ deckId: currentDeck.deckId })
-        }}
-        onClearSelection={workflow.clearSelection}
-      />
+        <BulkActionBar
+          selectedCount={selectedCount}
+          saving={state.loading.saving}
+          canSave={canSave}
+          onSaveSelected={() => {
+            if (!currentDeck.deckId) {
+              setSelectDeckOpen(true)
+              return
+            }
+            void workflow.saveSelected({ deckId: currentDeck.deckId })
+          }}
+          onClearSelection={workflow.clearSelection}
+        />
 
-      <SaveResultsPanel results={state.results} currentDeckId={currentDeck.deckId} />
+        <SaveResultsPanel results={state.results} currentDeckId={currentDeck.deckId} />
 
-      <SelectDeckDialog
-        open={selectDeckOpen}
-        decks={decks}
-        value={pendingDeckId}
-        onChange={(deckId) => setPendingDeckId(deckId)}
-        onConfirm={() => {
-          if (!pendingDeckId) {
-            return
-          }
-          setCurrentDeck(pendingDeckId)
-          setSelectDeckOpen(false)
-          void workflow.saveSelected({ deckId: pendingDeckId })
-        }}
-        onOpenChange={setSelectDeckOpen}
-      />
-    </main>
+        <SelectDeckDialog
+          open={selectDeckOpen}
+          decks={decks}
+          value={pendingDeckId}
+          onChange={(deckId) => setPendingDeckId(deckId)}
+          onConfirm={() => {
+            if (!pendingDeckId) {
+              return
+            }
+            setCurrentDeck(pendingDeckId)
+            setSelectDeckOpen(false)
+            void workflow.saveSelected({ deckId: pendingDeckId })
+          }}
+          onOpenChange={setSelectDeckOpen}
+        />
+      </main>
+    </div>
   )
 }
