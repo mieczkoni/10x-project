@@ -74,7 +74,12 @@ export function LoginForm({
   )
 
   return (
-    <form noValidate className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <form
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={handleSubmit}
+      data-test-id="login-form"
+    >
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-slate-600" htmlFor={emailId}>
           Email
@@ -93,6 +98,7 @@ export function LoginForm({
           aria-describedby={showEmailError ? emailErrorId : undefined}
           disabled={submitting}
           required
+          data-test-id="login-email-input"
         />
         {showEmailError ? (
           <p id={emailErrorId} className="text-xs text-red-600">
@@ -118,6 +124,7 @@ export function LoginForm({
           aria-describedby={showPasswordError ? passwordErrorId : undefined}
           disabled={submitting}
           required
+          data-test-id="login-password-input"
         />
         {showPasswordError ? (
           <p id={passwordErrorId} className="text-xs text-red-600">
@@ -126,7 +133,13 @@ export function LoginForm({
         ) : null}
       </div>
 
-      <Button type="submit" disabled={submitting || !isValid} className="w-full" size="lg">
+      <Button
+        type="submit"
+        disabled={submitting || !isValid}
+        className="w-full"
+        size="lg"
+        data-test-id="login-submit-button"
+      >
         {submitting ? "Logging in..." : submitLabel}
       </Button>
     </form>

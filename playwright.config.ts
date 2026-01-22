@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "node:path";
 
-const baseURL = "http://localhost:3000";
+dotenv.config({ path: path.resolve(process.cwd(), ".env.test") });
+
+const baseURL = "http://localhost:3001";
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -9,6 +13,7 @@ export default defineConfig({
   reporter: "html",
   use: {
     baseURL,
+    testIdAttribute: "data-test-id",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -20,7 +25,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
+    command: "npm run dev:e2e",
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

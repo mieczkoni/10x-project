@@ -28,6 +28,7 @@ const safeCtas = Array.isArray(primaryCtas)
           class={`${baseClasses} ${variants[cta.variant] ?? variants.primary}`}
           href={cta.href}
           aria-label={cta.ariaLabel ?? cta.label}
+          data-test-id={cta.href === "/login" ? "landing-login-cta" : "landing-signup-cta"}
         >
           {cta.label}
         </a>

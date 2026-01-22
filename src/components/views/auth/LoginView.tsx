@@ -25,8 +25,14 @@ export function LoginView({ initialNext }: LoginViewProps) {
   )
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-10">
-      <section className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6">
+    <main
+      className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-10"
+      data-test-id="login-page"
+    >
+      <section
+        className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6"
+        data-test-id="login-panel"
+      >
         <LoginHeader />
         <LoginErrorSummary error={errorSummary} />
         <LoginForm

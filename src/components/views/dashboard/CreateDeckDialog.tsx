@@ -135,6 +135,7 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
           }
         }}
         tabIndex={-1}
+        data-test-id="create-deck-dialog"
       >
         <div className="flex flex-col gap-1">
           <h2 id="create-deck-title" className="text-lg font-semibold text-slate-900">
@@ -159,6 +160,7 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
               aria-invalid={Boolean(form.errors.name)}
               aria-describedby={form.errors.name ? "deck-name-error" : undefined}
               required
+              data-test-id="create-deck-name-input"
             />
             {form.errors.name ? (
               <p id="deck-name-error" className="text-xs text-red-600">
@@ -180,6 +182,7 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
               }
               aria-invalid={Boolean(form.errors.description)}
               aria-describedby={form.errors.description ? "deck-description-error" : undefined}
+              data-test-id="create-deck-description-input"
             />
             {form.errors.description ? (
               <p id="deck-description-error" className="text-xs text-red-600">
@@ -207,6 +210,7 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
               type="submit"
               className="h-10 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
               disabled={form.submitting}
+              data-test-id="create-deck-submit-button"
             >
               {form.submitting ? "Creating..." : "Create deck"}
             </button>

@@ -37,7 +37,10 @@ function normalizeCtas(ctas: PublicLandingCtaVm[]): PublicLandingCtaVm[] {
 }
 ---
 
-<main class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-12 px-6 py-16 sm:px-10">
+<main
+  class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-12 px-6 py-16 sm:px-10"
+  data-test-id="landing-page"
+>
   <LandingHero hero={vm.hero} />
   <LandingPrimaryCtas primaryCtas={normalizedCtas} />
   <LandingPrivacyGdprNote privacy={vm.privacy} />
