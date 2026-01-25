@@ -24,10 +24,22 @@ export class LoginPage {
 
   async login(email: string, password: string) {
     await expect(this.emailInput).toBeEnabled()
+    await this.fillCredentials(email, password)
+
+    if (!(await this.submitButton.isEnabled())) {
+      await this.page.waitForLoadState("networkidle")
+      await this.fillCredentials(email, password)
+    }
+
+    await expect(this.submitButton).toBeEnabled()
+    await this.submitButton.click()
+  }
+
+  private async fillCredentials(email: string, password: string) {
     await this.emailInput.click()
     await this.emailInput.fill(email)
     await expect(this.emailInput).toHaveValue(email)
     await this.passwordInput.fill(password)
-    await this.submitButton.click()
+    await expect(this.passwordInput).toHaveValue(password)
   }
 }

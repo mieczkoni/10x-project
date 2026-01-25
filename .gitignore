@@ -25,3 +25,5 @@ pnpm-debug.log*
 .idea/
 
 .npm-cache/
+test-results/
+playwright-report/
