@@ -1,0 +1,87 @@
+name: Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+      - name: "Setup Node.js"
+        uses: ./.github/actions/setup-node
+      - name: "Lint"
+        run: npm run lint
+
+  unit-test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+      - name: "Setup Node.js"
+        uses: ./.github/actions/setup-node
+      - name: "Run unit tests"
+        run: npm run test:unit -- --coverage
+      - name: "Upload unit test coverage"
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: unit-coverage
+          path: coverage/unit
+          if-no-files-found: warn
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: lint
+    environment: integration
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      DEV_SUPABASE_USER_ID: ${{ secrets.DEV_SUPABASE_USER_ID }}
+      E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      PLAYWRIGHT_COVERAGE: "1"
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v6
+      - name: "Setup Node.js"
+        uses: ./.github/actions/setup-node
+      - name: "Install Playwright browsers"
+        run: npx playwright install --with-deps chromium
+      - name: "Run e2e tests"
+        run: npm run test:e2e
+      - name: "Upload e2e test coverage"
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-coverage
+          path: coverage/e2e
+          if-no-files-found: warn
+
+  status-comment:
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test, e2e-test]
+    if: ${{ needs.lint.result == 'success' && needs.unit-test.result == 'success' && needs.e2e-test.result == 'success' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: "Comment on PR"
+        uses: actions/github-script@v8
+        with:
+          script: |
+            if (!context.payload.pull_request) {
+              return
+            }
+
+            const { owner, repo } = context.repo
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: context.payload.pull_request.number,
+              body: "✅ Lint, unit tests, and e2e tests passed."
+            })

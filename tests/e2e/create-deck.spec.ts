@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures"
 
 import { CreateDeckDialog } from "./page-objects/CreateDeckDialog"
 import { DashboardPage } from "./page-objects/DashboardPage"
