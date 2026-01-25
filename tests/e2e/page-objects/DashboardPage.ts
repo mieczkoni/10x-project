@@ -9,6 +9,11 @@ export class DashboardPage {
     this.createDeckButton = page.getByTestId("dashboard-create-deck-button")
   }
 
+  async waitForReady() {
+    await this.createDeckButton.waitFor()
+    await this.page.waitForLoadState("networkidle")
+  }
+
   async openCreateDeckDialog() {
     await this.createDeckButton.click()
   }

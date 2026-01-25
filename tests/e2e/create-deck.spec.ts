@@ -35,7 +35,7 @@ test("user can create a deck from dashboard", async ({ page }) => {
   await landingPage.openLogin()
   await loginPage.waitForReady()
   await loginPage.login(userEmail, userPassword)
-  await expect(dashboardPage.createDeckButton).toBeVisible()
+  await dashboardPage.waitForReady()
   await dashboardPage.openCreateDeckDialog()
   await createDeckDialog.waitForOpen()
   await createDeckDialog.createDeck(deckName, deckDescription)
