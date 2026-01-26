@@ -96,15 +96,6 @@ Included in MVP
 - Event instrumentation for AI acceptance metrics
 - Immediate, irreversible account deletion (GDPR)
 
-Excluded from MVP
-- Custom spaced-repetition algorithm
-- File imports beyond copy-paste text (PDF/DOCX)
-- Sharing or collaboration between users
-- Third-party learning platform integrations
-- Native mobile apps
-- Email verification during sign-up
-- Backups or soft deletes for user data
-
 ## Project status
 
 MVP scope is defined in the PRD and is under active development.
