@@ -1,15 +1,15 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { DeckId } from "../../../types"
-import type { DeckListItemVm } from "./dashboard.types"
+import type { DeckId } from "../../../types";
+import type { DeckListItemVm } from "./dashboard.types";
 
-type CurrentDeckSelectorProps = {
-  decks: DeckListItemVm[]
-  value: DeckId | null
-  onChange: (deckId: DeckId) => void
-  disabled?: boolean
-  showSelectionPrompt?: boolean
-  selectionPromptText?: string
+interface CurrentDeckSelectorProps {
+  decks: DeckListItemVm[];
+  value: DeckId | null;
+  onChange: (deckId: DeckId) => void;
+  disabled?: boolean;
+  showSelectionPrompt?: boolean;
+  selectionPromptText?: string;
 }
 
 export function CurrentDeckSelector({
@@ -20,20 +20,18 @@ export function CurrentDeckSelector({
   showSelectionPrompt = false,
   selectionPromptText = "Select a deck to start a new generation.",
 }: CurrentDeckSelectorProps) {
-  const selectId = React.useId()
-  const promptId = `${selectId}-prompt`
-  const selectRef = React.useRef<HTMLSelectElement>(null)
-  const isDisabled = disabled || decks.length === 0
-  const showHint = !isDisabled
-  const ariaDescribedBy = showSelectionPrompt
-    ? `${selectId}-hint ${promptId}`
-    : `${selectId}-hint`
+  const selectId = React.useId();
+  const promptId = `${selectId}-prompt`;
+  const selectRef = React.useRef<HTMLSelectElement>(null);
+  const isDisabled = disabled || decks.length === 0;
+  const showHint = !isDisabled;
+  const ariaDescribedBy = showSelectionPrompt ? `${selectId}-hint ${promptId}` : `${selectId}-hint`;
 
   React.useEffect(() => {
     if (showSelectionPrompt && !isDisabled) {
-      selectRef.current?.focus()
+      selectRef.current?.focus();
     }
-  }, [showSelectionPrompt, isDisabled])
+  }, [showSelectionPrompt, isDisabled]);
 
   return (
     <div className="flex flex-col gap-1">
@@ -73,5 +71,5 @@ export function CurrentDeckSelector({
         </p>
       ) : null}
     </div>
-  )
+  );
 }

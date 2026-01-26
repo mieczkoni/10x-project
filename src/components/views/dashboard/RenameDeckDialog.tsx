@@ -1,139 +1,145 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { DeckId, UpdateDeckCommand } from "../../../types"
-import type { DeckListItemVm } from "./dashboard.types"
+import type { DeckId, UpdateDeckCommand } from "../../../types";
+import type { DeckListItemVm } from "./dashboard.types";
 
-type RenameDeckDialogProps = {
-  open: boolean
-  deck: DeckListItemVm | null
-  onOpenChange: (open: boolean) => void
-  onSubmit: (deckId: DeckId, patch: UpdateDeckCommand) => void
+interface RenameDeckDialogProps {
+  open: boolean;
+  deck: DeckListItemVm | null;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (deckId: DeckId, patch: UpdateDeckCommand) => void;
 }
 
-const NAME_MIN_LENGTH = 1
-const NAME_MAX_LENGTH = 120
-const DESCRIPTION_MAX_LENGTH = 2000
+const NAME_MIN_LENGTH = 1;
+const NAME_MAX_LENGTH = 120;
+const DESCRIPTION_MAX_LENGTH = 2000;
 
-type FormState = {
-  name: string
-  description: string
+interface FormState {
+  name: string;
+  description: string;
   errors: {
-    name?: string
-    description?: string
-    form?: string
-  }
+    name?: string;
+    description?: string;
+    form?: string;
+  };
 }
 
 function validateForm(form: FormState) {
-  const errors: FormState["errors"] = {}
-  const name = form.name.trim()
-  const description = form.description.trim()
+  const errors: FormState["errors"] = {};
+  const name = form.name.trim();
+  const description = form.description.trim();
 
   if (!name) {
-    errors.name = "Deck name is required."
+    errors.name = "Deck name is required.";
   } else if (name.length < NAME_MIN_LENGTH || name.length > NAME_MAX_LENGTH) {
-    errors.name = `Name must be ${NAME_MIN_LENGTH}-${NAME_MAX_LENGTH} characters.`
+    errors.name = `Name must be ${NAME_MIN_LENGTH}-${NAME_MAX_LENGTH} characters.`;
   }
 
   if (description.length > DESCRIPTION_MAX_LENGTH) {
-    errors.description = `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less.`
+    errors.description = `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less.`;
   }
 
-  return errors
+  return errors;
 }
 
-export function RenameDeckDialog({
-  open,
-  deck,
-  onOpenChange,
-  onSubmit,
-}: RenameDeckDialogProps) {
+export function RenameDeckDialog({ open, deck, onOpenChange, onSubmit }: RenameDeckDialogProps) {
   const [form, setForm] = React.useState<FormState>({
     name: deck?.name ?? "",
     description: deck?.description ?? "",
     errors: {},
-  })
-  const nameInputRef = React.useRef<HTMLInputElement | null>(null)
-  const lastActiveRef = React.useRef<HTMLElement | null>(null)
+  });
+  const nameInputRef = React.useRef<HTMLInputElement | null>(null);
+  const lastActiveRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!open) {
-      setForm({ name: deck?.name ?? "", description: deck?.description ?? "", errors: {} })
+      setForm({ name: deck?.name ?? "", description: deck?.description ?? "", errors: {} });
       if (lastActiveRef.current) {
-        lastActiveRef.current.focus()
+        lastActiveRef.current.focus();
       }
-      return
+      return;
     }
 
     if (typeof document !== "undefined") {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (active instanceof HTMLElement) {
-        lastActiveRef.current = active
+        lastActiveRef.current = active;
       }
     }
 
-    setForm({ name: deck?.name ?? "", description: deck?.description ?? "", errors: {} })
+    setForm({ name: deck?.name ?? "", description: deck?.description ?? "", errors: {} });
     window.setTimeout(() => {
-      nameInputRef.current?.focus()
-    }, 0)
-  }, [open, deck])
+      nameInputRef.current?.focus();
+    }, 0);
+  }, [open, deck]);
 
   const handleClose = React.useCallback(() => {
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleClose, open]);
 
   if (!open || !deck) {
-    return null
+    return null;
   }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const errors = validateForm(form)
+    event.preventDefault();
+    const errors = validateForm(form);
     if (Object.keys(errors).length > 0) {
-      setForm((prev) => ({ ...prev, errors }))
-      return
+      setForm((prev) => ({ ...prev, errors }));
+      return;
     }
 
-    const patch: UpdateDeckCommand = {}
-    const name = form.name.trim()
-    const description = form.description.trim()
+    const patch: UpdateDeckCommand = {};
+    const name = form.name.trim();
+    const description = form.description.trim();
 
     if (name !== deck.name) {
-      patch.name = name
+      patch.name = name;
     }
     if ((deck.description ?? "") !== description) {
-      patch.description = description ? description : null
+      patch.description = description ? description : null;
     }
 
     if (Object.keys(patch).length === 0) {
       setForm((prev) => ({
         ...prev,
         errors: { form: "No changes to save." },
-      }))
-      return
+      }));
+      return;
     }
 
-    onSubmit(deck.id, patch)
-    onOpenChange(false)
-  }
+    onSubmit(deck.id, patch);
+    onOpenChange(false);
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
-      onClick={handleClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+      <button
+        type="button"
+        className="absolute inset-0 z-0 cursor-pointer"
+        onClick={handleClose}
+        aria-label="Close dialog"
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
+        className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="rename-deck-title"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            handleClose()
-          }
-        }}
         tabIndex={-1}
       >
         <div className="flex flex-col gap-1">
@@ -153,9 +159,7 @@ export function RenameDeckDialog({
               ref={nameInputRef}
               className="h-10 rounded-md border border-slate-200 px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
               value={form.name}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, name: event.target.value }))
-              }
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
               aria-invalid={Boolean(form.errors.name)}
               aria-describedby={form.errors.name ? "rename-deck-name-error" : undefined}
               required
@@ -175,13 +179,9 @@ export function RenameDeckDialog({
               id="rename-deck-description"
               className="min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
               value={form.description}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, description: event.target.value }))
-              }
+              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
               aria-invalid={Boolean(form.errors.description)}
-              aria-describedby={
-                form.errors.description ? "rename-deck-description-error" : undefined
-              }
+              aria-describedby={form.errors.description ? "rename-deck-description-error" : undefined}
             />
             {form.errors.description ? (
               <p id="rename-deck-description-error" className="text-xs text-red-600">
@@ -214,5 +214,5 @@ export function RenameDeckDialog({
         </form>
       </div>
     </div>
-  )
+  );
 }

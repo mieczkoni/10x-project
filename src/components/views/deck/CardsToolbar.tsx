@@ -1,58 +1,50 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CardsQueryVm, TagOptionVm } from "./deck-detail.types"
+import type { CardsQueryVm, TagOptionVm } from "./deck-detail.types";
 
-type CardsToolbarProps = {
-  query: CardsQueryVm
-  availableTags: TagOptionVm[]
-  disabled?: boolean
-  onQueryChange: (next: Partial<CardsQueryVm>) => void
-  onOpenNewCard: () => void
+interface CardsToolbarProps {
+  query: CardsQueryVm;
+  availableTags: TagOptionVm[];
+  disabled?: boolean;
+  onQueryChange: (next: Partial<CardsQueryVm>) => void;
+  onOpenNewCard: () => void;
 }
 
-const MAX_QUERY_LENGTH = 200
+const MAX_QUERY_LENGTH = 200;
 
-export function CardsToolbar({
-  query,
-  availableTags,
-  disabled,
-  onQueryChange,
-  onOpenNewCard,
-}: CardsToolbarProps) {
-  const searchId = React.useId()
-  const helperId = React.useId()
-  const selectedTags = new Set(query.tags)
+export function CardsToolbar({ query, availableTags, disabled, onQueryChange, onOpenNewCard }: CardsToolbarProps) {
+  const searchId = React.useId();
+  const helperId = React.useId();
+  const selectedTags = React.useMemo(() => new Set(query.tags), [query.tags]);
 
   const handleSearchChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onQueryChange({ q: event.target.value })
+      onQueryChange({ q: event.target.value });
     },
     [onQueryChange]
-  )
+  );
 
   const handleToggleTag = React.useCallback(
     (tag: string) => {
-      const nextTags = selectedTags.has(tag)
-        ? query.tags.filter((value) => value !== tag)
-        : [...query.tags, tag]
-      onQueryChange({ tags: nextTags })
+      const nextTags = selectedTags.has(tag) ? query.tags.filter((value) => value !== tag) : [...query.tags, tag];
+      onQueryChange({ tags: nextTags });
     },
     [onQueryChange, query.tags, selectedTags]
-  )
+  );
 
   const handleClearFilters = React.useCallback(() => {
-    onQueryChange({ tags: [], aiGenerated: "all" })
-  }, [onQueryChange])
+    onQueryChange({ tags: [], aiGenerated: "all" });
+  }, [onQueryChange]);
 
   const handleAiFilter = React.useCallback(
     (value: CardsQueryVm["aiGenerated"]) => {
-      onQueryChange({ aiGenerated: value })
+      onQueryChange({ aiGenerated: value });
     },
     [onQueryChange]
-  )
+  );
 
-  const trimmedSearch = query.q.trim()
-  const showTagFilters = availableTags.length > 0
+  const trimmedSearch = query.q.trim();
+  const showTagFilters = availableTags.length > 0;
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-6">
@@ -87,9 +79,7 @@ export function CardsToolbar({
                 key={value}
                 type="button"
                 className={`h-9 px-3 ${
-                  query.aiGenerated === value
-                    ? "bg-slate-900 text-white"
-                    : "bg-white text-slate-600 hover:bg-slate-50"
+                  query.aiGenerated === value ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
                 }`}
                 onClick={() => handleAiFilter(value)}
                 disabled={Boolean(disabled)}
@@ -127,7 +117,7 @@ export function CardsToolbar({
         {showTagFilters ? (
           <div className="flex flex-wrap gap-2">
             {availableTags.map((tag) => {
-              const isSelected = selectedTags.has(tag.value)
+              const isSelected = selectedTags.has(tag.value);
               return (
                 <button
                   key={tag.value}
@@ -144,7 +134,7 @@ export function CardsToolbar({
                   {tag.label}
                   {typeof tag.count === "number" ? ` · ${tag.count}` : ""}
                 </button>
-              )
+              );
             })}
           </div>
         ) : (
@@ -152,5 +142,5 @@ export function CardsToolbar({
         )}
       </div>
     </section>
-  )
+  );
 }

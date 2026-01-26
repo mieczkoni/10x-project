@@ -1,26 +1,19 @@
-import type { DeckId } from "../../../types"
-import type { DeckActionStateById, DeckListItemVm } from "./dashboard.types"
-import { DeckRow } from "./DeckRow"
+import type { DeckId } from "../../../types";
+import type { DeckActionStateById, DeckListItemVm } from "./dashboard.types";
+import { DeckRow } from "./DeckRow";
 
-type DecksListProps = {
-  decks: DeckListItemVm[]
-  actions?: DeckActionStateById
-  onRename?: (deckId: DeckId) => void
-  onDelete?: (deckId: DeckId) => void
-  query?: string
-  loading?: boolean
+interface DecksListProps {
+  decks: DeckListItemVm[];
+  actions?: DeckActionStateById;
+  onRename?: (deckId: DeckId) => void;
+  onDelete?: (deckId: DeckId) => void;
+  query?: string;
+  loading?: boolean;
 }
 
-export function DecksList({
-  decks,
-  actions = {},
-  onRename,
-  onDelete,
-  query = "",
-  loading = false,
-}: DecksListProps) {
+export function DecksList({ decks, actions = {}, onRename, onDelete, query = "", loading = false }: DecksListProps) {
   if (loading) {
-    return <p className="text-sm text-slate-600">Loading decks...</p>
+    return <p className="text-sm text-slate-600">Loading decks...</p>;
   }
 
   if (decks.length === 0) {
@@ -33,20 +26,14 @@ export function DecksList({
           {query ? "Try a different search term." : "Your decks will show up here."}
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <ul className="space-y-3">
       {decks.map((deck) => (
-        <DeckRow
-          key={deck.id}
-          deck={deck}
-          actionState={actions[deck.id]}
-          onRename={onRename}
-          onDelete={onDelete}
-        />
+        <DeckRow key={deck.id} deck={deck} actionState={actions[deck.id]} onRename={onRename} onDelete={onDelete} />
       ))}
     </ul>
-  )
+  );
 }

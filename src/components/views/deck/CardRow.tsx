@@ -1,17 +1,17 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CardId } from "../../../types"
-import type { CardActionState, CardListItemVm } from "./deck-detail.types"
+import type { CardId } from "../../../types";
+import type { CardActionState, CardListItemVm } from "./deck-detail.types";
 
-type CardRowProps = {
-  card: CardListItemVm
-  actionState?: CardActionState
-  onEdit?: (cardId: CardId) => void
-  onDelete?: (cardId: CardId) => void
+interface CardRowProps {
+  card: CardListItemVm;
+  actionState?: CardActionState;
+  onEdit?: (cardId: CardId) => void;
+  onDelete?: (cardId: CardId) => void;
 }
 
 export function CardRow({ card, actionState, onEdit, onDelete }: CardRowProps) {
-  const isBusy = Boolean(actionState?.isDeleting || actionState?.isUpdating)
+  const isBusy = Boolean(actionState?.isDeleting || actionState?.isUpdating);
 
   return (
     <li className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 sm:flex-row sm:items-start sm:justify-between">
@@ -27,10 +27,7 @@ export function CardRow({ card, actionState, onEdit, onDelete }: CardRowProps) {
             </span>
           ) : null}
           {card.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-600"
-            >
+            <span key={tag} className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-600">
               {tag}
             </span>
           ))}
@@ -63,5 +60,5 @@ export function CardRow({ card, actionState, onEdit, onDelete }: CardRowProps) {
         </button>
       </div>
     </li>
-  )
+  );
 }

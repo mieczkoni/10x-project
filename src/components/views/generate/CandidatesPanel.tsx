@@ -1,14 +1,14 @@
-import type { CandidateEditPatchVm, GeneratedCandidateVm } from "./generate.types"
-import { CandidatesList } from "./CandidatesList"
+import type { CandidateEditPatchVm, GeneratedCandidateVm } from "./generate.types";
+import { CandidatesList } from "./CandidatesList";
 
-type CandidatesPanelProps = {
-  candidates: GeneratedCandidateVm[]
-  onToggleSelected: (tempId: string) => void
-  onEdit: (tempId: string) => void
-  onRemove: (tempId: string) => void
-  onEditSave: (tempId: string, patch: CandidateEditPatchVm) => void
-  onEditCancel: (tempId: string) => void
-  disabled?: boolean
+interface CandidatesPanelProps {
+  candidates: GeneratedCandidateVm[];
+  onToggleSelected: (tempId: string) => void;
+  onEdit: (tempId: string) => void;
+  onRemove: (tempId: string) => void;
+  onEditSave: (tempId: string, patch: CandidateEditPatchVm) => void;
+  onEditCancel: (tempId: string) => void;
+  disabled?: boolean;
 }
 
 export function CandidatesPanel({
@@ -44,5 +44,5 @@ export function CandidatesPanel({
         )}
       </div>
     </section>
-  )
+  );
 }

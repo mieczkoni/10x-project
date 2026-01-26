@@ -1,39 +1,38 @@
-import * as React from "react"
+import * as React from "react";
 
-import { useSignup } from "../../hooks/useSignup"
-import { SignupErrorSummary } from "./SignupErrorSummary"
-import { SignupForm } from "./SignupForm"
-import { SignupHeader } from "./SignupHeader"
-import { SignupLinks } from "./SignupLinks"
+import { useSignup } from "../../hooks/useSignup";
+import { SignupErrorSummary } from "./SignupErrorSummary";
+import { SignupForm } from "./SignupForm";
+import { SignupHeader } from "./SignupHeader";
+import { SignupLinks } from "./SignupLinks";
 
-type SignupViewProps = {
-  initialNext?: string | null
+interface SignupViewProps {
+  initialNext?: string | null;
 }
 
 export function SignupView({ initialNext }: SignupViewProps) {
-  const { form, errors, submitting, errorSummary, setForm, submit, returnTo } =
-    useSignup(initialNext)
+  const { form, errors, submitting, errorSummary, setForm, submit, returnTo } = useSignup(initialNext);
 
   const handleChange = React.useCallback(
     (nextForm: typeof form) => {
-      setForm(nextForm)
+      setForm(nextForm);
     },
     [setForm]
-  )
+  );
 
   const handleSubmit = React.useCallback(
     async (values: typeof form) => {
-      await submit(values)
+      await submit(values);
     },
     [submit]
-  )
+  );
 
   const loginHref = React.useMemo(() => {
     if (!returnTo.raw) {
-      return "/login"
+      return "/login";
     }
-    return `/login?next=${encodeURIComponent(returnTo.raw)}`
-  }, [returnTo.raw])
+    return `/login?next=${encodeURIComponent(returnTo.raw)}`;
+  }, [returnTo.raw]);
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-10">
@@ -50,5 +49,5 @@ export function SignupView({ initialNext }: SignupViewProps) {
         <SignupLinks loginHref={loginHref} />
       </section>
     </main>
-  )
+  );
 }

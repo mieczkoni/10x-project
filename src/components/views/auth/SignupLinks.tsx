@@ -1,13 +1,13 @@
-import * as React from "react"
+import * as React from "react";
 
-type SignupLinksProps = {
-  loginHref?: string
-  termsHref?: string
-  privacyHref?: string
+interface SignupLinksProps {
+  loginHref?: string;
+  termsHref?: string;
+  privacyHref?: string;
 }
 
 export function SignupLinks({ loginHref = "/login", termsHref, privacyHref }: SignupLinksProps) {
-  const showPolicies = Boolean(termsHref || privacyHref)
+  const showPolicies = Boolean(termsHref || privacyHref);
 
   return (
     <div className="flex flex-col gap-2 text-sm text-slate-600">
@@ -48,5 +48,5 @@ export function SignupLinks({ loginHref = "/login", termsHref, privacyHref }: Si
         </p>
       ) : null}
     </div>
-  )
+  );
 }

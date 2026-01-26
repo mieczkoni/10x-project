@@ -1,15 +1,16 @@
-import type { APIRoute } from 'astro';
-import { ZodError } from 'zod';
+import type { APIRoute } from "astro";
+import { ZodError } from "zod";
 
-import { bulkCreateCardsSchema } from '../../../lib/validation/cards.zod';
-import { ApiErrors, jsonOk } from '../../../lib/http/api-response';
-import { bulkCreateCards } from '../../../lib/services/cards.service';
-import { enforceRateLimit, RateLimitError } from '../../../lib/services/rate-limit.service';
+import { bulkCreateCardsSchema } from "../../../lib/validation/cards.zod";
+import { ApiErrors, jsonOk } from "../../../lib/http/api-response";
+import { logger } from "../../../lib/logger";
+import { bulkCreateCards } from "../../../lib/services/cards.service";
+import { enforceRateLimit, RateLimitError } from "../../../lib/services/rate-limit.service";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ locals, request }) => {
-  const requestId = request.headers.get('x-request-id') ?? undefined;
+  const requestId = request.headers.get("x-request-id") ?? undefined;
 
   const {
     data: { user },
@@ -24,7 +25,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   try {
     body = await request.json();
   } catch {
-    return ApiErrors.invalidInput('Invalid JSON in request body');
+    return ApiErrors.invalidInput("Invalid JSON in request body");
   }
 
   try {
@@ -33,7 +34,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     if (error instanceof RateLimitError) {
       return ApiErrors.rateLimited();
     }
-    console.error('[POST /api/cards/bulk-create] Rate limit check failed', {
+    logger.error("[POST /api/cards/bulk-create] Rate limit check failed", {
       userId: user.id,
       deckId: (body as Record<string, unknown> | undefined)?.deck_id,
       cardsCount: Array.isArray((body as Record<string, unknown> | undefined)?.cards)
@@ -49,7 +50,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const result = await bulkCreateCards(locals.supabase, user.id, validatedCommand);
 
     if (result.created.length === 0 && result.skipped.length === 0) {
-      console.error('[POST /api/cards/bulk-create] No cards created or skipped (unexpected)', {
+      logger.error("[POST /api/cards/bulk-create] No cards created or skipped (unexpected)", {
         userId: user.id,
         deckId: validatedCommand.deck_id,
         cardsCount: validatedCommand.cards.length,
@@ -58,7 +59,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     if (result.created.length === 0 && result.skipped.length > 0) {
-      console.info('[POST /api/cards/bulk-create] All candidates skipped as duplicates', {
+      logger.info("[POST /api/cards/bulk-create] All candidates skipped as duplicates", {
         userId: user.id,
         deckId: validatedCommand.deck_id,
         cardsCount: validatedCommand.cards.length,
@@ -70,26 +71,26 @@ export const POST: APIRoute = async ({ locals, request }) => {
     return jsonOk(result, 201);
   } catch (error) {
     if (error instanceof ZodError) {
-      return ApiErrors.invalidInput('Invalid request body', {
+      return ApiErrors.invalidInput("Invalid request body", {
         issues: JSON.parse(JSON.stringify(error.errors)),
       });
     }
 
     if (error instanceof Error) {
-      if (error.message === 'DECK_NOT_FOUND') {
+      if (error.message === "DECK_NOT_FOUND") {
         return ApiErrors.deckNotFound();
       }
 
-      if (error.message === 'CONTENT_HASH_FAILED') {
-        return ApiErrors.serverError('Failed to compute content hash');
+      if (error.message === "CONTENT_HASH_FAILED") {
+        return ApiErrors.serverError("Failed to compute content hash");
       }
 
-      if (error.message === 'BULK_INSERT_FAILED') {
+      if (error.message === "BULK_INSERT_FAILED") {
         return ApiErrors.serverError();
       }
     }
 
-    console.error('[POST /api/cards/bulk-create] Unexpected error', {
+    logger.error("[POST /api/cards/bulk-create] Unexpected error", {
       userId: user.id,
       deckId: (body as Record<string, unknown> | undefined)?.deck_id,
       cardsCount: Array.isArray((body as Record<string, unknown> | undefined)?.cards)

@@ -1,12 +1,12 @@
-import * as React from "react"
+import * as React from "react";
 
-type SourceTextEditorProps = {
-  value: string
-  maxChars: number
-  error?: string | null
-  onChange: (value: string) => void
-  onBlur?: () => void
-  disabled?: boolean
+interface SourceTextEditorProps {
+  value: string;
+  maxChars: number;
+  error?: string | null;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+  disabled?: boolean;
 }
 
 export function SourceTextEditor({
@@ -17,8 +17,8 @@ export function SourceTextEditor({
   onBlur,
   disabled = false,
 }: SourceTextEditorProps) {
-  const textareaId = React.useId()
-  const helperId = `${textareaId}-helper`
+  const textareaId = React.useId();
+  const helperId = `${textareaId}-helper`;
 
   return (
     <div className="flex flex-col gap-2">
@@ -44,5 +44,5 @@ export function SourceTextEditor({
         </span>
       </div>
     </div>
-  )
+  );
 }

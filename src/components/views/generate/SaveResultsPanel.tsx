@@ -1,14 +1,14 @@
-import type { DeckId } from "../../../types"
-import type { SaveResultsVm } from "./generate.types"
+import type { DeckId } from "../../../types";
+import type { SaveResultsVm } from "./generate.types";
 
-type SaveResultsPanelProps = {
-  results: SaveResultsVm | null
-  currentDeckId: DeckId | null
+interface SaveResultsPanelProps {
+  results: SaveResultsVm | null;
+  currentDeckId: DeckId | null;
 }
 
 export function SaveResultsPanel({ results, currentDeckId }: SaveResultsPanelProps) {
   if (!results || results.status === "idle") {
-    return null
+    return null;
   }
 
   return (
@@ -56,5 +56,5 @@ export function SaveResultsPanel({ results, currentDeckId }: SaveResultsPanelPro
         </a>
       ) : null}
     </section>
-  )
+  );
 }

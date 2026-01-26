@@ -1,17 +1,17 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import type { ResetPasswordFieldErrors, ResetPasswordFormValues } from "./reset-password.types"
+import type { ResetPasswordFieldErrors, ResetPasswordFormValues } from "./reset-password.types";
 
-export type ResetPasswordFormProps = {
-  value: ResetPasswordFormValues
-  errors: ResetPasswordFieldErrors
-  submitting: boolean
-  recoveryReady: boolean
-  disabledReason?: string
-  onChange: (next: ResetPasswordFormValues) => void
-  onSubmit: (values: ResetPasswordFormValues) => Promise<void>
+export interface ResetPasswordFormProps {
+  value: ResetPasswordFormValues;
+  errors: ResetPasswordFieldErrors;
+  submitting: boolean;
+  recoveryReady: boolean;
+  disabledReason?: string;
+  onChange: (next: ResetPasswordFormValues) => void;
+  onSubmit: (values: ResetPasswordFormValues) => Promise<void>;
 }
 
 export function ResetPasswordForm({
@@ -23,58 +23,58 @@ export function ResetPasswordForm({
   onChange,
   onSubmit,
 }: ResetPasswordFormProps) {
-  const passwordId = React.useId()
-  const confirmPasswordId = React.useId()
-  const passwordErrorId = `${passwordId}-error`
-  const confirmPasswordErrorId = `${confirmPasswordId}-error`
-  const passwordRef = React.useRef<HTMLInputElement>(null)
-  const confirmPasswordRef = React.useRef<HTMLInputElement>(null)
-  const [touched, setTouched] = React.useState({ password: false, confirmPassword: false })
-  const [submitAttempted, setSubmitAttempted] = React.useState(false)
+  const passwordId = React.useId();
+  const confirmPasswordId = React.useId();
+  const passwordErrorId = `${passwordId}-error`;
+  const confirmPasswordErrorId = `${confirmPasswordId}-error`;
+  const passwordRef = React.useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = React.useRef<HTMLInputElement>(null);
+  const [touched, setTouched] = React.useState({ password: false, confirmPassword: false });
+  const [submitAttempted, setSubmitAttempted] = React.useState(false);
 
-  const showPasswordError = Boolean((touched.password || submitAttempted) && errors.password)
-  const showConfirmError = Boolean((touched.confirmPassword || submitAttempted) && errors.confirmPassword)
-  const isValid = !errors.password && !errors.confirmPassword
-  const isDisabled = submitting || !isValid || !recoveryReady
+  const showPasswordError = Boolean((touched.password || submitAttempted) && errors.password);
+  const showConfirmError = Boolean((touched.confirmPassword || submitAttempted) && errors.confirmPassword);
+  const isValid = !errors.password && !errors.confirmPassword;
+  const isDisabled = submitting || !isValid || !recoveryReady;
 
   React.useEffect(() => {
     if (!submitAttempted) {
-      return
+      return;
     }
     if (errors.password && passwordRef.current) {
-      passwordRef.current.focus()
-      return
+      passwordRef.current.focus();
+      return;
     }
     if (errors.confirmPassword && confirmPasswordRef.current) {
-      confirmPasswordRef.current.focus()
+      confirmPasswordRef.current.focus();
     }
-  }, [errors.confirmPassword, errors.password, submitAttempted])
+  }, [errors.confirmPassword, errors.password, submitAttempted]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
       if (submitting) {
-        return
+        return;
       }
-      setSubmitAttempted(true)
-      await onSubmit(value)
+      setSubmitAttempted(true);
+      await onSubmit(value);
     },
     [onSubmit, submitting, value]
-  )
+  );
 
   const handlePasswordChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, password: event.target.value })
+      onChange({ ...value, password: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   const handleConfirmPasswordChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, confirmPassword: event.target.value })
+      onChange({ ...value, confirmPassword: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   return (
     <form noValidate className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -135,5 +135,5 @@ export function ResetPasswordForm({
         {submitting ? "Updating..." : "Update password"}
       </Button>
     </form>
-  )
+  );
 }

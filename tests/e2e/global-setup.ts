@@ -1,106 +1,90 @@
-import { createServerClient } from "@supabase/ssr"
-import type { FullConfig } from "@playwright/test"
-import dotenv from "dotenv"
-import path from "node:path"
+import { createServerClient } from "@supabase/ssr";
+import dotenv from "dotenv";
+import path from "node:path";
 
-import type { Database } from "../../src/db/database.types.ts"
+import type { Database } from "../../src/db/database.types.ts";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env.test") })
+dotenv.config({ path: path.resolve(process.cwd(), ".env.test") });
 
-const SUPABASE_URL = process.env.SUPABASE_URL
-const SUPABASE_KEY = process.env.SUPABASE_KEY
-const DEV_SUPABASE_USER_ID = process.env.DEV_SUPABASE_USER_ID
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const DEV_SUPABASE_USER_ID = process.env.DEV_SUPABASE_USER_ID;
 
 function log(message: string) {
-  process.stdout.write(`${message}\n`)
+  process.stdout.write(`${message}\n`);
 }
 
 function getRequiredEnv(...keys: string[]): string {
   for (const key of keys) {
-    const value = process.env[key]
+    const value = process.env[key];
     if (value) {
-      return value
+      return value;
     }
   }
-  throw new Error(`Missing env value. Set one of: ${keys.join(", ")}`)
+  throw new Error(`Missing env value. Set one of: ${keys.join(", ")}`);
 }
 
 function getDevUserId(): string {
   if (!DEV_SUPABASE_USER_ID) {
-    throw new Error(
-      "Missing DEV_SUPABASE_USER_ID for Playwright teardown cleanup.",
-    )
+    throw new Error("Missing DEV_SUPABASE_USER_ID for Playwright teardown cleanup.");
   }
-  return DEV_SUPABASE_USER_ID
+  return DEV_SUPABASE_USER_ID;
 }
 
 function createSupabaseClient() {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error(
-      "Missing SUPABASE_URL or SUPABASE_KEY for Playwright teardown.",
-    )
+    throw new Error("Missing SUPABASE_URL or SUPABASE_KEY for Playwright teardown.");
   }
 
   return createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
     cookies: {
       getAll() {
-        return []
+        return [];
       },
       setAll() {
-        return undefined
+        return undefined;
       },
     },
-  })
+  });
 }
 
-export default async function globalSetup(_config: FullConfig) {
-  log("[playwright] Global setup start")
+export default async function globalSetup() {
+  log("[playwright] Global setup start");
   return async () => {
-    log("[playwright] Global teardown start")
-    const supabase = createSupabaseClient()
-    const devUserId = getDevUserId()
-    const userEmail = getRequiredEnv("E2E_USERNAME")
-    const userPassword = getRequiredEnv("E2E_PASSWORD")
+    log("[playwright] Global teardown start");
+    const supabase = createSupabaseClient();
+    const devUserId = getDevUserId();
+    const userEmail = getRequiredEnv("E2E_USERNAME");
+    const userPassword = getRequiredEnv("E2E_PASSWORD");
 
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: userPassword,
-      })
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: userEmail,
+      password: userPassword,
+    });
 
     if (signInError) {
-      throw new Error(`Failed to sign in for cleanup: ${signInError.message}`)
+      throw new Error(`Failed to sign in for cleanup: ${signInError.message}`);
     }
 
     if (signInData.session) {
-      await supabase.auth.setSession(signInData.session)
+      await supabase.auth.setSession(signInData.session);
     }
 
-    const { data: userData, error: userError } = await supabase.auth.getUser()
+    const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError) {
-      throw new Error(
-        `Failed to fetch user after sign-in: ${userError.message}`,
-      )
+      throw new Error(`Failed to fetch user after sign-in: ${userError.message}`);
     }
     if (userData.user?.id !== devUserId) {
-      log(
-        `[playwright] Warning: signed-in user ${userData.user?.id} does not match DEV_SUPABASE_USER_ID ${devUserId}`,
-      )
+      log(`[playwright] Warning: signed-in user ${userData.user?.id} does not match DEV_SUPABASE_USER_ID ${devUserId}`);
     }
 
-    const { data, error } = await supabase
-      .from("decks")
-      .delete()
-      .eq("user_id", devUserId)
-      .select("id")
+    const { data, error } = await supabase.from("decks").delete().eq("user_id", devUserId).select("id");
 
     if (error) {
-      throw new Error(`Failed to clean decks table: ${error.message}`)
+      throw new Error(`Failed to clean decks table: ${error.message}`);
     }
 
-    log(
-      `[playwright] Cleaned ${data?.length ?? 0} decks for user ${devUserId}`,
-    )
-    log("[playwright] Global teardown done")
-  }
+    log(`[playwright] Cleaned ${data?.length ?? 0} decks for user ${devUserId}`);
+    log("[playwright] Global teardown done");
+  };
 }

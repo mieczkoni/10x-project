@@ -1,17 +1,17 @@
-import * as React from "react"
+import * as React from "react";
 
-type DecksSearchBarProps = {
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
+interface DecksSearchBarProps {
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const MAX_QUERY_LENGTH = 200
+const MAX_QUERY_LENGTH = 200;
 
 export function DecksSearchBar({ value, onChange, disabled = false }: DecksSearchBarProps) {
-  const inputId = React.useId()
-  const helperId = `${inputId}-helper`
-  const trimmedValue = value.trim()
+  const inputId = React.useId();
+  const helperId = `${inputId}-helper`;
+  const trimmedValue = value.trim();
 
   return (
     <div className="flex flex-col gap-2">
@@ -42,9 +42,8 @@ export function DecksSearchBar({ value, onChange, disabled = false }: DecksSearc
         ) : null}
       </div>
       <p id={helperId} className="text-xs text-slate-500">
-        {trimmedValue ? `Searching for “${trimmedValue}”` : "Showing all decks"} ·{" "}
-        {value.length}/{MAX_QUERY_LENGTH}
+        {trimmedValue ? `Searching for “${trimmedValue}”` : "Showing all decks"} · {value.length}/{MAX_QUERY_LENGTH}
       </p>
     </div>
-  )
+  );
 }

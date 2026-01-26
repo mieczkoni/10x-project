@@ -1,23 +1,16 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-type PaginationFooterProps = {
-  hasMore: boolean
-  loading: boolean
-  onLoadMore: () => void
-  onRefresh?: () => void
+interface PaginationFooterProps {
+  hasMore: boolean;
+  loading: boolean;
+  onLoadMore: () => void;
+  onRefresh?: () => void;
 }
 
-export function PaginationFooter({
-  hasMore,
-  loading,
-  onLoadMore,
-  onRefresh,
-}: PaginationFooterProps) {
+export function PaginationFooter({ hasMore, loading, onLoadMore, onRefresh }: PaginationFooterProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs text-slate-500">
-        {hasMore ? "More decks available." : "You’ve reached the end."}
-      </p>
+      <p className="text-xs text-slate-500">{hasMore ? "More decks available." : "You’ve reached the end."}</p>
       <div className="flex flex-wrap gap-2">
         {onRefresh ? (
           <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
@@ -29,5 +22,5 @@ export function PaginationFooter({
         </Button>
       </div>
     </div>
-  )
+  );
 }

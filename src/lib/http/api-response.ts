@@ -5,7 +5,7 @@
  * and use appropriate HTTP status codes per the API plan.
  */
 
-import type { ApiErrorResponseDto, JsonObject } from '../../types';
+import type { ApiErrorResponseDto, JsonObject } from "../../types";
 
 /**
  * Creates a successful JSON response with the specified data and status code.
@@ -18,7 +18,7 @@ export function jsonOk<T>(data: T, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 }
@@ -37,12 +37,7 @@ export function jsonOk<T>(data: T, status = 200): Response {
  * return jsonError(404, 'not_found', 'Deck not found');
  * ```
  */
-export function jsonError(
-  status: number,
-  code: string,
-  message: string,
-  details?: JsonObject
-): Response {
+export function jsonError(status: number, code: string, message: string, details?: JsonObject): Response {
   const body: ApiErrorResponseDto = {
     error: {
       code,
@@ -54,14 +49,14 @@ export function jsonError(
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 }
 
 /**
  * Creates a 204 No Content response (for successful DELETE operations).
- * 
+ *
  * @returns Astro Response with no body
  */
 export function noContent(): Response {
@@ -77,61 +72,55 @@ export const ApiErrors = {
   /**
    * 400 Bad Request - Invalid input from client.
    */
-  invalidInput: (message: string, details?: JsonObject) =>
-    jsonError(400, 'invalid_input', message, details),
+  invalidInput: (message: string, details?: JsonObject) => jsonError(400, "invalid_input", message, details),
 
   /**
    * 401 Unauthorized - Missing or invalid authentication.
    */
-  unauthorized: (message = 'Authentication required') =>
-    jsonError(401, 'unauthorized', message),
+  unauthorized: (message = "Authentication required") => jsonError(401, "unauthorized", message),
 
   /**
    * 404 Not Found - Resource doesn't exist (or not owned by user).
    */
-  notFound: (message = 'Resource not found') =>
-    jsonError(404, 'not_found', message),
+  notFound: (message = "Resource not found") => jsonError(404, "not_found", message),
 
   /**
    * 404 Not Found - Deck doesn't exist (or not owned by user).
    * Used in card creation when deck_id is invalid.
    */
-  deckNotFound: (message = 'Deck not found') =>
-    jsonError(404, 'deck_not_found', message),
+  deckNotFound: (message = "Deck not found") => jsonError(404, "deck_not_found", message),
 
   /**
    * 409 Conflict - Duplicate resource (e.g., card with identical content).
    */
-  duplicate: (message: string) =>
-    jsonError(409, 'duplicate_in_deck', message),
+  duplicate: (message: string) => jsonError(409, "duplicate_in_deck", message),
 
   /**
    * 408 Request Timeout - AI provider call aborted or timed out.
    */
-  generationTimeout: (message = 'Generation request timed out', details?: JsonObject) =>
-    jsonError(408, 'generation_timeout', message, details),
+  generationTimeout: (message = "Generation request timed out", details?: JsonObject) =>
+    jsonError(408, "generation_timeout", message, details),
 
   /**
    * 429 Too Many Requests - Per-user rate limit exceeded.
    */
-  rateLimited: (message = 'Too many requests') =>
-    jsonError(429, 'rate_limited', message),
+  rateLimited: (message = "Too many requests") => jsonError(429, "rate_limited", message),
 
   /**
    * 400 Bad Request - Input exceeded allowed size constraints.
    */
-  inputTooLarge: (message = 'Input exceeds maximum allowed size', details?: JsonObject) =>
-    jsonError(400, 'input_too_large', message, details),
+  inputTooLarge: (message = "Input exceeds maximum allowed size", details?: JsonObject) =>
+    jsonError(400, "input_too_large", message, details),
 
   /**
    * 502 Bad Gateway - AI model/provider returned invalid or failed output.
    */
-  modelError: (message = 'Model failed to produce valid output', details?: JsonObject) =>
-    jsonError(502, 'model_error', message, details),
+  modelError: (message = "Model failed to produce valid output", details?: JsonObject) =>
+    jsonError(502, "model_error", message, details),
 
   /**
    * 500 Internal Server Error - Unexpected server failure.
    */
-  serverError: (message = 'An unexpected error occurred', details?: JsonObject) =>
-    jsonError(500, 'server_error', message, details),
+  serverError: (message = "An unexpected error occurred", details?: JsonObject) =>
+    jsonError(500, "server_error", message, details),
 };

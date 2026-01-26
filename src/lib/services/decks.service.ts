@@ -1,37 +1,30 @@
 /**
  * Service layer for Decks resource.
- * 
+ *
  * Handles all database operations for deck management including:
  * - Listing with search, pagination, and soft-delete filtering
  * - Creating new decks
  * - Fetching single decks with ownership verification
  * - Updating deck fields (including soft-delete via deleted_at)
  * - Hard-deleting decks (cascades to cards)
- * 
+ *
  * Security: All operations rely on Supabase RLS policies that enforce
  * user_id = auth.uid() access control.
  */
 
-import type { SupabaseClient } from '../../db/supabase.client';
-import type {
-  DeckDto,
-  DeckListResponseDto,
-  CreateDeckCommand,
-  UpdateDeckCommand,
-  UserId,
-  DeckId,
-} from '../../types';
-import type { ListDecksQuery } from '../validation/decks.zod';
-import { decodeCursor, extractCursor } from '../pagination/cursor';
+import type { SupabaseClient } from "../../db/supabase.client";
+import type { DeckDto, DeckListResponseDto, CreateDeckCommand, UpdateDeckCommand, UserId, DeckId } from "../../types";
+import type { ListDecksQuery } from "../validation/decks.zod";
+import { decodeCursor, extractCursor } from "../pagination/cursor";
 
 /**
  * Lists decks for the authenticated user with optional filtering and pagination.
- * 
+ *
  * @param supabase - Typed Supabase client from context.locals
  * @param userId - Authenticated user ID
  * @param query - Validated query parameters (limit, cursor, sort, order, q, includeDeleted)
  * @returns Paginated list of decks
- * 
+ *
  * @throws Error if database query fails (caller should catch and return 500)
  */
 export async function listDecks(
@@ -39,24 +32,14 @@ export async function listDecks(
   userId: UserId,
   query: ListDecksQuery
 ): Promise<DeckListResponseDto> {
-  const {
-    limit,
-    cursor,
-    sort = 'created_at',
-    order = 'desc',
-    q,
-    includeDeleted = false,
-  } = query;
+  const { limit, cursor, sort = "created_at", order = "desc", q, includeDeleted = false } = query;
 
   // Start building query
-  let queryBuilder = supabase
-    .from('decks')
-    .select('*')
-    .eq('user_id', userId);
+  let queryBuilder = supabase.from("decks").select("*").eq("user_id", userId);
 
   // Filter out soft-deleted decks unless explicitly included
   if (!includeDeleted) {
-    queryBuilder = queryBuilder.is('deleted_at', null);
+    queryBuilder = queryBuilder.is("deleted_at", null);
   }
 
   // Search in name and description (case-insensitive)
@@ -69,12 +52,12 @@ export async function listDecks(
   if (cursor) {
     const cursorPayload = decodeCursor(cursor);
     if (!cursorPayload) {
-      throw new Error('Invalid cursor format');
+      throw new Error("Invalid cursor format");
     }
 
     // Apply cursor filter based on sort order
     // For stable pagination, we use (sortField, id) composite comparison
-    if (order === 'desc') {
+    if (order === "desc") {
       // Get rows where (sortField < cursor.sortValue) OR (sortField = cursor.sortValue AND id < cursor.id)
       queryBuilder = queryBuilder.or(
         `${sort}.lt.${cursorPayload.sortValue},and(${sort}.eq.${cursorPayload.sortValue},id.lt.${cursorPayload.id})`
@@ -88,8 +71,8 @@ export async function listDecks(
   }
 
   // Apply ordering (use id as tiebreaker for stability)
-  queryBuilder = queryBuilder.order(sort, { ascending: order === 'asc' });
-  queryBuilder = queryBuilder.order('id', { ascending: order === 'asc' });
+  queryBuilder = queryBuilder.order(sort, { ascending: order === "asc" });
+  queryBuilder = queryBuilder.order("id", { ascending: order === "asc" });
 
   // Fetch limit + 1 to determine if there's a next page
   queryBuilder = queryBuilder.limit(limit + 1);
@@ -117,12 +100,12 @@ export async function listDecks(
 
 /**
  * Creates a new deck for the authenticated user.
- * 
+ *
  * @param supabase - Typed Supabase client from context.locals
  * @param userId - Authenticated user ID (server-derived, not from client)
  * @param command - Validated deck creation data
  * @returns Created deck with all fields
- * 
+ *
  * @throws Error if database insert fails
  */
 export async function createDeck(
@@ -131,7 +114,7 @@ export async function createDeck(
   command: CreateDeckCommand
 ): Promise<DeckDto> {
   const { data, error } = await supabase
-    .from('decks')
+    .from("decks")
     .insert({
       user_id: userId,
       name: command.name,
@@ -149,25 +132,16 @@ export async function createDeck(
 
 /**
  * Fetches a single deck by ID for the authenticated user.
- * 
+ *
  * @param supabase - Typed Supabase client from context.locals
  * @param userId - Authenticated user ID
  * @param deckId - UUID of the deck to fetch
  * @returns Deck if found and owned by user, null otherwise
- * 
+ *
  * @throws Error if database query fails (not for 404 - returns null)
  */
-export async function getDeckById(
-  supabase: SupabaseClient,
-  userId: UserId,
-  deckId: DeckId
-): Promise<DeckDto | null> {
-  const { data, error } = await supabase
-    .from('decks')
-    .select('*')
-    .eq('id', deckId)
-    .eq('user_id', userId)
-    .maybeSingle();
+export async function getDeckById(supabase: SupabaseClient, userId: UserId, deckId: DeckId): Promise<DeckDto | null> {
+  const { data, error } = await supabase.from("decks").select("*").eq("id", deckId).eq("user_id", userId).maybeSingle();
 
   if (error) {
     throw new Error(`Failed to fetch deck: ${error.message}`);
@@ -178,18 +152,18 @@ export async function getDeckById(
 
 /**
  * Updates a deck with partial field changes.
- * 
+ *
  * Supports updating:
  * - name
  * - description
  * - deleted_at (for soft-delete/restore UX)
- * 
+ *
  * @param supabase - Typed Supabase client from context.locals
  * @param userId - Authenticated user ID
  * @param deckId - UUID of the deck to update
  * @param command - Validated partial update data
  * @returns Updated deck if found and owned, null if not found/not owned
- * 
+ *
  * @throws Error if database update fails (not for 404 - returns null)
  */
 export async function updateDeck(
@@ -206,10 +180,10 @@ export async function updateDeck(
 
   // Perform the update
   const { data, error } = await supabase
-    .from('decks')
+    .from("decks")
     .update(command)
-    .eq('id', deckId)
-    .eq('user_id', userId)
+    .eq("id", deckId)
+    .eq("user_id", userId)
     .select()
     .single();
 
@@ -222,28 +196,19 @@ export async function updateDeck(
 
 /**
  * Hard-deletes a deck and all associated cards (via FK cascade).
- * 
+ *
  * This is a destructive operation that cannot be undone.
  * For soft-delete UX, use updateDeck with deleted_at instead.
- * 
+ *
  * @param supabase - Typed Supabase client from context.locals
  * @param userId - Authenticated user ID
  * @param deckId - UUID of the deck to delete
  * @returns true if deleted, false if not found/not owned
- * 
+ *
  * @throws Error if database delete fails (not for 404 - returns false)
  */
-export async function deleteDeck(
-  supabase: SupabaseClient,
-  userId: UserId,
-  deckId: DeckId
-): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('decks')
-    .delete()
-    .eq('id', deckId)
-    .eq('user_id', userId)
-    .select();
+export async function deleteDeck(supabase: SupabaseClient, userId: UserId, deckId: DeckId): Promise<boolean> {
+  const { data, error } = await supabase.from("decks").delete().eq("id", deckId).eq("user_id", userId).select();
 
   if (error) {
     throw new Error(`Failed to delete deck: ${error.message}`);

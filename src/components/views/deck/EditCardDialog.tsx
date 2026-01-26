@@ -1,21 +1,21 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CardDto, CardId } from "../../../types"
-import { ApiError, fetchJson } from "../../../lib/http/client"
-import { normalizeTags, toUpdateCardCommand, type CardEditorFormVm } from "./deck-detail.types"
+import type { CardDto, CardId } from "../../../types";
+import { ApiError, fetchJson } from "../../../lib/http/client";
+import { normalizeTags, toUpdateCardCommand, type CardEditorFormVm } from "./deck-detail.types";
 
-type EditCardDialogProps = {
-  open: boolean
-  card: CardDto | null
-  onOpenChange: (open: boolean) => void
-  onSaved: (card: CardDto) => void
-  onSavingChange?: (cardId: CardId, isSaving: boolean) => void
+interface EditCardDialogProps {
+  open: boolean;
+  card: CardDto | null;
+  onOpenChange: (open: boolean) => void;
+  onSaved: (card: CardDto) => void;
+  onSavingChange?: (cardId: CardId, isSaving: boolean) => void;
 }
 
-const FRONT_MAX = 2000
-const BACK_MAX = 10000
-const TAG_MAX_COUNT = 20
-const TAG_MAX_LENGTH = 50
+const FRONT_MAX = 2000;
+const BACK_MAX = 10000;
+const TAG_MAX_COUNT = 20;
+const TAG_MAX_LENGTH = 50;
 
 const defaultForm: CardEditorFormVm = {
   front: "",
@@ -23,11 +23,11 @@ const defaultForm: CardEditorFormVm = {
   tagsText: "",
   errors: {},
   submitting: false,
-}
+};
 
 function toFormState(card: CardDto | null): CardEditorFormVm {
   if (!card) {
-    return defaultForm
+    return defaultForm;
   }
   return {
     front: card.front,
@@ -35,111 +35,105 @@ function toFormState(card: CardDto | null): CardEditorFormVm {
     tagsText: (card.tags ?? []).join(", "),
     errors: {},
     submitting: false,
-  }
+  };
 }
 
 function validateForm(form: CardEditorFormVm) {
-  const errors: CardEditorFormVm["errors"] = {}
-  const front = form.front.trim()
-  const back = form.back.trim()
-  const tags = normalizeTags(form.tagsText.split(","))
+  const errors: CardEditorFormVm["errors"] = {};
+  const front = form.front.trim();
+  const back = form.back.trim();
+  const tags = normalizeTags(form.tagsText.split(","));
 
   if (!front) {
-    errors.front = "Front is required."
+    errors.front = "Front is required.";
   } else if (front.length > FRONT_MAX) {
-    errors.front = `Front must be ${FRONT_MAX} characters or less.`
+    errors.front = `Front must be ${FRONT_MAX} characters or less.`;
   }
 
   if (!back) {
-    errors.back = "Back is required."
+    errors.back = "Back is required.";
   } else if (back.length > BACK_MAX) {
-    errors.back = `Back must be ${BACK_MAX} characters or less.`
+    errors.back = `Back must be ${BACK_MAX} characters or less.`;
   }
 
   if (tags.length > TAG_MAX_COUNT) {
-    errors.tags = `Tags must be ${TAG_MAX_COUNT} or fewer.`
+    errors.tags = `Tags must be ${TAG_MAX_COUNT} or fewer.`;
   } else if (tags.some((tag) => tag.length > TAG_MAX_LENGTH)) {
-    errors.tags = `Each tag must be ${TAG_MAX_LENGTH} characters or less.`
+    errors.tags = `Each tag must be ${TAG_MAX_LENGTH} characters or less.`;
   }
 
-  return errors
+  return errors;
 }
 
-export function EditCardDialog({
-  open,
-  card,
-  onOpenChange,
-  onSaved,
-  onSavingChange,
-}: EditCardDialogProps) {
-  const [form, setForm] = React.useState<CardEditorFormVm>(defaultForm)
-  const frontInputRef = React.useRef<HTMLTextAreaElement | null>(null)
-  const lastActiveRef = React.useRef<HTMLElement | null>(null)
+export function EditCardDialog({ open, card, onOpenChange, onSaved, onSavingChange }: EditCardDialogProps) {
+  const [form, setForm] = React.useState<CardEditorFormVm>(defaultForm);
+  const frontInputRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const lastActiveRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!open) {
-      setForm(toFormState(card))
+      setForm(toFormState(card));
       if (lastActiveRef.current) {
-        lastActiveRef.current.focus()
+        lastActiveRef.current.focus();
       }
-      return
+      return;
     }
 
     if (typeof document !== "undefined") {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (active instanceof HTMLElement) {
-        lastActiveRef.current = active
+        lastActiveRef.current = active;
       }
     }
 
-    setForm(toFormState(card))
+    setForm(toFormState(card));
 
     window.setTimeout(() => {
-      frontInputRef.current?.focus()
-    }, 0)
-  }, [card, open])
+      frontInputRef.current?.focus();
+    }, 0);
+  }, [card, open]);
 
   const handleClose = React.useCallback(() => {
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
       if (!card) {
-        return
+        return;
       }
-      const errors = validateForm(form)
+      const errors = validateForm(form);
       if (Object.keys(errors).length > 0) {
-        setForm((prev) => ({ ...prev, errors }))
-        return
+        setForm((prev) => ({ ...prev, errors }));
+        return;
       }
 
-      const patch = toUpdateCardCommand(form, card)
+      const patch = toUpdateCardCommand(form, card);
 
       if (Object.keys(patch).length === 0) {
         setForm((prev) => ({
           ...prev,
           errors: { ...prev.errors, form: "No changes to save." },
-        }))
-        return
+        }));
+        return;
       }
 
-      setForm((prev) => ({ ...prev, submitting: true, errors: {} }))
-      onSavingChange?.(card.id, true)
+      setForm((prev) => ({ ...prev, submitting: true, errors: {} }));
+      onSavingChange?.(card.id, true);
 
       try {
         const updated = await fetchJson<CardDto>(`/api/cards/${card.id}`, {
           method: "PATCH",
           body: JSON.stringify(patch),
-        })
-        onSaved(updated)
-        setForm(defaultForm)
-        onOpenChange(false)
+        });
+        onSaved(updated);
+        setForm(defaultForm);
+        onOpenChange(false);
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
-          window.location.href = "/login"
-          return
+          window.location.href = "/login";
+          return;
         }
         if (err instanceof ApiError && err.status === 404) {
           setForm((prev) => ({
@@ -149,8 +143,8 @@ export function EditCardDialog({
               ...prev.errors,
               form: "This card no longer exists. Refresh the list to continue.",
             },
-          }))
-          return
+          }));
+          return;
         }
         if (err instanceof ApiError && err.status === 400 && err.code === "invalid_input") {
           setForm((prev) => ({
@@ -160,8 +154,8 @@ export function EditCardDialog({
               ...prev.errors,
               form: err.message,
             },
-          }))
-          return
+          }));
+          return;
         }
         if (err instanceof ApiError && err.status === 409 && err.code === "duplicate_in_deck") {
           setForm((prev) => ({
@@ -171,8 +165,8 @@ export function EditCardDialog({
               ...prev.errors,
               form: "Updated content matches an existing card in this deck.",
             },
-          }))
-          return
+          }));
+          return;
         }
         setForm((prev) => ({
           ...prev,
@@ -181,35 +175,46 @@ export function EditCardDialog({
             ...prev.errors,
             form: err instanceof ApiError ? err.message : "Unable to update card. Please try again.",
           },
-        }))
+        }));
       } finally {
-        onSavingChange?.(card.id, false)
+        onSavingChange?.(card.id, false);
       }
     },
     [card, form, onOpenChange, onSaved, onSavingChange]
-  )
+  );
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleClose, open]);
 
   if (!open || !card) {
-    return null
+    return null;
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
-      onClick={handleClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+      <button
+        type="button"
+        className="absolute inset-0 z-0 cursor-pointer"
+        onClick={handleClose}
+        aria-label="Close dialog"
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-xl rounded-lg bg-white p-6 shadow-lg"
+        className="relative z-10 w-full max-w-xl rounded-lg bg-white p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-card-title"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            handleClose()
-          }
-        }}
         tabIndex={-1}
       >
         <div className="flex flex-col gap-1">
@@ -304,5 +309,5 @@ export function EditCardDialog({
         </form>
       </div>
     </div>
-  )
+  );
 }

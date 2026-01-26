@@ -1,10 +1,10 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-type ResetPasswordSuccessProps = {
-  onGoToDashboard: () => void
-  onGoToLogin?: () => void
+interface ResetPasswordSuccessProps {
+  onGoToDashboard: () => void;
+  onGoToLogin?: () => void;
 }
 
 export function ResetPasswordSuccess({ onGoToDashboard, onGoToLogin }: ResetPasswordSuccessProps) {
@@ -22,5 +22,5 @@ export function ResetPasswordSuccess({ onGoToDashboard, onGoToLogin }: ResetPass
         ) : null}
       </div>
     </div>
-  )
+  );
 }

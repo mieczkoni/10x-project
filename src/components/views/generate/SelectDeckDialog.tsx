@@ -1,71 +1,75 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { DeckId } from "../../../types"
-import type { DeckListItemVm } from "../dashboard/dashboard.types"
+import type { DeckId } from "../../../types";
+import type { DeckListItemVm } from "../dashboard/dashboard.types";
 
-type SelectDeckDialogProps = {
-  open: boolean
-  decks: DeckListItemVm[]
-  value: DeckId | null
-  onChange: (deckId: DeckId) => void
-  onConfirm: () => void
-  onOpenChange: (open: boolean) => void
+interface SelectDeckDialogProps {
+  open: boolean;
+  decks: DeckListItemVm[];
+  value: DeckId | null;
+  onChange: (deckId: DeckId) => void;
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function SelectDeckDialog({
-  open,
-  decks,
-  value,
-  onChange,
-  onConfirm,
-  onOpenChange,
-}: SelectDeckDialogProps) {
-  const selectRef = React.useRef<HTMLSelectElement | null>(null)
-  const lastActiveRef = React.useRef<HTMLElement | null>(null)
+export function SelectDeckDialog({ open, decks, value, onChange, onConfirm, onOpenChange }: SelectDeckDialogProps) {
+  const selectRef = React.useRef<HTMLSelectElement | null>(null);
+  const lastActiveRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!open) {
       if (lastActiveRef.current) {
-        lastActiveRef.current.focus()
+        lastActiveRef.current.focus();
       }
-      return
+      return;
     }
 
     if (typeof document !== "undefined") {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (active instanceof HTMLElement) {
-        lastActiveRef.current = active
+        lastActiveRef.current = active;
       }
     }
 
     window.setTimeout(() => {
-      selectRef.current?.focus()
-    }, 0)
-  }, [open])
+      selectRef.current?.focus();
+    }, 0);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onOpenChange(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onOpenChange, open]);
 
   if (!open) {
-    return null
+    return null;
   }
 
-  const disableConfirm = !value
+  const disableConfirm = !value;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
-      onClick={() => onOpenChange(false)}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+      <button
+        type="button"
+        className="absolute inset-0 z-0 cursor-pointer"
+        onClick={() => onOpenChange(false)}
+        aria-label="Close dialog"
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
+        className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="select-deck-title"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            onOpenChange(false)
-          }
-        }}
         tabIndex={-1}
       >
         <div className="flex flex-col gap-1">
@@ -95,9 +99,7 @@ export function SelectDeckDialog({
               </option>
             ))}
           </select>
-          {decks.length === 0 ? (
-            <p className="text-xs text-slate-500">Create a deck first on the dashboard.</p>
-          ) : null}
+          {decks.length === 0 ? <p className="text-xs text-slate-500">Create a deck first on the dashboard.</p> : null}
         </div>
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -119,5 +121,5 @@ export function SelectDeckDialog({
         </div>
       </div>
     </div>
-  )
+  );
 }

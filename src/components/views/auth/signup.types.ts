@@ -1,13 +1,13 @@
-export type SignupFormValues = {
-  email: string
-  password: string
-  confirmPassword: string
+export interface SignupFormValues {
+  email: string;
+  password: string;
+  confirmPassword: string;
 }
 
-export type SignupFieldErrors = {
-  email: string | null
-  password: string | null
-  confirmPassword: string | null
+export interface SignupFieldErrors {
+  email: string | null;
+  password: string | null;
+  confirmPassword: string | null;
 }
 
 export type SignupFailureReason =
@@ -16,22 +16,22 @@ export type SignupFailureReason =
   | "account_exists"
   | "email_not_allowed"
   | "weak_password"
-  | "unknown_error"
+  | "unknown_error";
 
-export type SignupErrorVm = {
-  reason: SignupFailureReason
-  message: string
+export interface SignupErrorVm {
+  reason: SignupFailureReason;
+  message: string;
 }
 
-export type SafeReturnToVm = {
-  raw: string | null
-  resolved: string
+export interface SafeReturnToVm {
+  raw: string | null;
+  resolved: string;
 }
 
-export type SignupViewModel = {
-  form: SignupFormValues
-  errors: SignupFieldErrors
-  submitting: boolean
-  errorSummary: SignupErrorVm | null
-  returnTo: SafeReturnToVm
+export interface SignupViewModel {
+  form: SignupFormValues;
+  errors: SignupFieldErrors;
+  submitting: boolean;
+  errorSummary: SignupErrorVm | null;
+  returnTo: SafeReturnToVm;
 }

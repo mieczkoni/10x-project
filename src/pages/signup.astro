@@ -1,13 +1,13 @@
 ---
-import Layout from "../layouts/Layout.astro"
-import { SignupView } from "../components/views/auth/SignupView"
+import Layout from "../layouts/Layout.astro";
+import { SignupView } from "../components/views/auth/SignupView";
 
-const { user } = Astro.locals
+const { user } = Astro.locals;
 if (user) {
-  return Astro.redirect("/dashboard")
+  return Astro.redirect("/dashboard");
 }
 
-const next = Astro.url.searchParams.get("next")
+const next = Astro.url.searchParams.get("next");
 ---
 
 <Layout title="Create account">

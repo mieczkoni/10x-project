@@ -1,16 +1,16 @@
-import type { DeckId } from "../../../types"
-import type { DeckActionState, DeckListItemVm } from "./dashboard.types"
+import type { DeckId } from "../../../types";
+import type { DeckActionState, DeckListItemVm } from "./dashboard.types";
 
-type DeckRowProps = {
-  deck: DeckListItemVm
-  actionState?: DeckActionState
-  onRename?: (deckId: DeckId) => void
-  onDelete?: (deckId: DeckId) => void
+interface DeckRowProps {
+  deck: DeckListItemVm;
+  actionState?: DeckActionState;
+  onRename?: (deckId: DeckId) => void;
+  onDelete?: (deckId: DeckId) => void;
 }
 
 export function DeckRow({ deck, actionState, onRename, onDelete }: DeckRowProps) {
-  const isRenaming = actionState?.isRenaming ?? false
-  const isDeleting = actionState?.isDeleting ?? false
+  const isRenaming = actionState?.isRenaming ?? false;
+  const isDeleting = actionState?.isDeleting ?? false;
 
   return (
     <li className="rounded-md border border-slate-200 bg-white p-4">
@@ -22,10 +22,8 @@ export function DeckRow({ deck, actionState, onRename, onDelete }: DeckRowProps)
           >
             {actionState?.optimisticName ?? deck.name}
           </a>
-          {actionState?.optimisticDescription ?? deck.description ? (
-            <p className="text-sm text-slate-600">
-              {actionState?.optimisticDescription ?? deck.description}
-            </p>
+          {(actionState?.optimisticDescription ?? deck.description) ? (
+            <p className="text-sm text-slate-600">{actionState?.optimisticDescription ?? deck.description}</p>
           ) : null}
         </div>
         <div className="flex items-center gap-2">
@@ -53,5 +51,5 @@ export function DeckRow({ deck, actionState, onRename, onDelete }: DeckRowProps)
         </p>
       ) : null}
     </li>
-  )
+  );
 }

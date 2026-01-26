@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-type SignupHeaderProps = {
-  title?: string
-  subtitle?: string
+interface SignupHeaderProps {
+  title?: string;
+  subtitle?: string;
 }
 
 export function SignupHeader({
@@ -14,5 +14,5 @@ export function SignupHeader({
       <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
       <p className="text-sm text-slate-600">{subtitle}</p>
     </header>
-  )
+  );
 }

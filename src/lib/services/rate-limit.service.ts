@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client";
+import { logger } from "../logger";
 
 export const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 export const MAX_REQUESTS = 10;
@@ -29,11 +30,7 @@ export function enforceRateLimit(userId: string, nowMs = Date.now()): void {
   requestsByUser.set(userId, recent);
 }
 
-export async function enforceRateLimitDb(
-  supabase: SupabaseClient,
-  userId: string,
-  nowMs = Date.now()
-): Promise<void> {
+export async function enforceRateLimitDb(supabase: SupabaseClient, userId: string, nowMs = Date.now()): Promise<void> {
   const windowStartIso = new Date(nowMs - WINDOW_MS).toISOString();
   try {
     const { count, error } = await supabase
@@ -44,7 +41,7 @@ export async function enforceRateLimitDb(
       .gte("created_at", windowStartIso);
 
     if (error) {
-      console.error("[rate-limit] DB fallback query failed", error.message);
+      logger.error("[rate-limit] DB fallback query failed", error.message);
       return;
     }
 
@@ -56,6 +53,6 @@ export async function enforceRateLimitDb(
     if (error instanceof RateLimitError) {
       throw error;
     }
-    console.error("[rate-limit] DB fallback exception", error);
+    logger.error("[rate-limit] DB fallback exception", error);
   }
 }

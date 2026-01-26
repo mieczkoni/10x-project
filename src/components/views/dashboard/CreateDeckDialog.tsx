@@ -1,35 +1,35 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CreateDeckCommand, DeckDto } from "../../../types"
-import { ApiError, fetchJson } from "../../../lib/http/client"
-import type { CreateDeckFormVm } from "./dashboard.types"
+import type { CreateDeckCommand, DeckDto } from "../../../types";
+import { ApiError, fetchJson } from "../../../lib/http/client";
+import type { CreateDeckFormVm } from "./dashboard.types";
 
-type CreateDeckDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onCreated: (deck: DeckDto) => void
+interface CreateDeckDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (deck: DeckDto) => void;
 }
 
-const NAME_MIN_LENGTH = 1
-const NAME_MAX_LENGTH = 120
-const DESCRIPTION_MAX_LENGTH = 2000
+const NAME_MIN_LENGTH = 1;
+const NAME_MAX_LENGTH = 120;
+const DESCRIPTION_MAX_LENGTH = 2000;
 
 function validateForm(form: CreateDeckFormVm): CreateDeckFormVm["errors"] {
-  const errors: CreateDeckFormVm["errors"] = {}
-  const name = form.name.trim()
-  const description = form.description.trim()
+  const errors: CreateDeckFormVm["errors"] = {};
+  const name = form.name.trim();
+  const description = form.description.trim();
 
   if (!name) {
-    errors.name = "Deck name is required."
+    errors.name = "Deck name is required.";
   } else if (name.length < NAME_MIN_LENGTH || name.length > NAME_MAX_LENGTH) {
-    errors.name = `Name must be ${NAME_MIN_LENGTH}-${NAME_MAX_LENGTH} characters.`
+    errors.name = `Name must be ${NAME_MIN_LENGTH}-${NAME_MAX_LENGTH} characters.`;
   }
 
   if (description.length > DESCRIPTION_MAX_LENGTH) {
-    errors.description = `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less.`
+    errors.description = `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less.`;
   }
 
-  return errors
+  return errors;
 }
 
 export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDialogProps) {
@@ -38,9 +38,9 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
     description: "",
     errors: {},
     submitting: false,
-  })
-  const nameInputRef = React.useRef<HTMLInputElement | null>(null)
-  const lastActiveRef = React.useRef<HTMLElement | null>(null)
+  });
+  const nameInputRef = React.useRef<HTMLInputElement | null>(null);
+  const lastActiveRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!open) {
@@ -48,92 +48,102 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
         ...prev,
         errors: {},
         submitting: false,
-      }))
+      }));
       if (lastActiveRef.current) {
-        lastActiveRef.current.focus()
+        lastActiveRef.current.focus();
       }
-      return
+      return;
     }
 
     if (typeof document !== "undefined") {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (active instanceof HTMLElement) {
-        lastActiveRef.current = active
+        lastActiveRef.current = active;
       }
     }
 
     window.setTimeout(() => {
-      nameInputRef.current?.focus()
-    }, 0)
-  }, [open])
+      nameInputRef.current?.focus();
+    }, 0);
+  }, [open]);
 
   const handleClose = React.useCallback(() => {
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleClose, open]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
 
-      const errors = validateForm(form)
+      const errors = validateForm(form);
       if (Object.keys(errors).length > 0) {
-        setForm((prev) => ({ ...prev, errors }))
-        return
+        setForm((prev) => ({ ...prev, errors }));
+        return;
       }
 
-      setForm((prev) => ({ ...prev, submitting: true, errors: {} }))
+      setForm((prev) => ({ ...prev, submitting: true, errors: {} }));
 
       const payload: CreateDeckCommand = {
         name: form.name.trim(),
         description: form.description.trim() ? form.description.trim() : null,
-      }
+      };
 
       try {
         const created = await fetchJson<DeckDto>("/api/decks", {
           method: "POST",
           body: JSON.stringify(payload),
-        })
-        onCreated(created)
-        setForm({ name: "", description: "", errors: {}, submitting: false })
-        onOpenChange(false)
+        });
+        onCreated(created);
+        setForm({ name: "", description: "", errors: {}, submitting: false });
+        onOpenChange(false);
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
-          window.location.href = "/login"
-          return
+          window.location.href = "/login";
+          return;
         }
-        const message =
-          err instanceof ApiError ? err.message : "Unable to create the deck. Please try again."
+        const message = err instanceof ApiError ? err.message : "Unable to create the deck. Please try again.";
         setForm((prev) => ({
           ...prev,
           submitting: false,
           errors: { ...prev.errors, form: message },
-        }))
+        }));
       }
     },
     [form, onCreated, onOpenChange]
-  )
+  );
 
   if (!open) {
-    return null
+    return null;
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
-      onClick={handleClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+      <button
+        type="button"
+        className="absolute inset-0 z-0 cursor-pointer"
+        onClick={handleClose}
+        aria-label="Close dialog"
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
+        className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-deck-title"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            handleClose()
-          }
-        }}
         tabIndex={-1}
         data-test-id="create-deck-dialog"
       >
@@ -154,9 +164,7 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
               ref={nameInputRef}
               className="h-10 rounded-md border border-slate-200 px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
               value={form.name}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, name: event.target.value }))
-              }
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
               aria-invalid={Boolean(form.errors.name)}
               aria-describedby={form.errors.name ? "deck-name-error" : undefined}
               required
@@ -177,9 +185,7 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
               id="deck-description"
               className="min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
               value={form.description}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, description: event.target.value }))
-              }
+              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
               aria-invalid={Boolean(form.errors.description)}
               aria-describedby={form.errors.description ? "deck-description-error" : undefined}
               data-test-id="create-deck-description-input"
@@ -218,5 +224,5 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
         </form>
       </div>
     </div>
-  )
+  );
 }

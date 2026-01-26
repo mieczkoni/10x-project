@@ -1,22 +1,22 @@
-import type { DeckId } from "../../../types"
-import type { DeckActionStateById, DeckListItemVm, DecksPageVm, DecksQueryVm } from "./dashboard.types"
-import { DecksList } from "./DecksList"
-import { DecksSearchBar } from "./DecksSearchBar"
-import { PaginationFooter } from "./PaginationFooter"
+import type { DeckId } from "../../../types";
+import type { DeckActionStateById, DeckListItemVm, DecksPageVm, DecksQueryVm } from "./dashboard.types";
+import { DecksList } from "./DecksList";
+import { DecksSearchBar } from "./DecksSearchBar";
+import { PaginationFooter } from "./PaginationFooter";
 
-type DecksSectionProps = {
-  query: DecksQueryVm
-  onQueryChange: (query: DecksQueryVm) => void
-  decks: DeckListItemVm[]
-  page: DecksPageVm
-  loading: boolean
-  loadingMore: boolean
-  error?: string | null
-  actions?: DeckActionStateById
-  onRename?: (deckId: DeckId) => void
-  onDelete?: (deckId: DeckId) => void
-  onLoadMore: () => void
-  onRefresh?: () => void
+interface DecksSectionProps {
+  query: DecksQueryVm;
+  onQueryChange: (query: DecksQueryVm) => void;
+  decks: DeckListItemVm[];
+  page: DecksPageVm;
+  loading: boolean;
+  loadingMore: boolean;
+  error?: string | null;
+  actions?: DeckActionStateById;
+  onRename?: (deckId: DeckId) => void;
+  onDelete?: (deckId: DeckId) => void;
+  onLoadMore: () => void;
+  onRefresh?: () => void;
 }
 
 export function DecksSection({
@@ -37,9 +37,7 @@ export function DecksSection({
     <section className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-slate-900">Decks</h2>
-        <p className="text-xs text-slate-500">
-          Search and manage your decks. Results update automatically.
-        </p>
+        <p className="text-xs text-slate-500">Search and manage your decks. Results update automatically.</p>
       </div>
 
       <DecksSearchBar
@@ -81,5 +79,5 @@ export function DecksSection({
         onRefresh={onRefresh}
       />
     </section>
-  )
+  );
 }

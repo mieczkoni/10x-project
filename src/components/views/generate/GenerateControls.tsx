@@ -1,11 +1,11 @@
-import type { GenerateOptionsVm } from "./generate.types"
+import type { GenerateOptionsVm } from "./generate.types";
 
-type GenerateControlsProps = {
-  options: GenerateOptionsVm
-  canGenerate: boolean
-  generating: boolean
-  onGenerate: () => void
-  onOptionsChange?: (patch: Partial<GenerateOptionsVm>) => void
+interface GenerateControlsProps {
+  options: GenerateOptionsVm;
+  canGenerate: boolean;
+  generating: boolean;
+  onGenerate: () => void;
+  onOptionsChange?: (patch: Partial<GenerateOptionsVm>) => void;
 }
 
 export function GenerateControls({
@@ -26,11 +26,11 @@ export function GenerateControls({
             max={20}
             value={options.maxCards}
             onChange={(event) => {
-              const value = Number(event.target.value)
+              const value = Number(event.target.value);
               if (!Number.isFinite(value)) {
-                return
+                return;
               }
-              onOptionsChange?.({ maxCards: value })
+              onOptionsChange?.({ maxCards: value });
             }}
             className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
           />
@@ -58,5 +58,5 @@ export function GenerateControls({
         </button>
       </div>
     </div>
-  )
+  );
 }

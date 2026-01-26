@@ -1,70 +1,76 @@
-import * as React from "react"
+import * as React from "react";
 
-type DeleteCardConfirmDialogProps = {
-  open: boolean
-  frontPreview: string
-  onConfirm: () => void
-  onOpenChange: (open: boolean) => void
+interface DeleteCardConfirmDialogProps {
+  open: boolean;
+  frontPreview: string;
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function DeleteCardConfirmDialog({
-  open,
-  frontPreview,
-  onConfirm,
-  onOpenChange,
-}: DeleteCardConfirmDialogProps) {
-  const confirmButtonRef = React.useRef<HTMLButtonElement | null>(null)
-  const lastActiveRef = React.useRef<HTMLElement | null>(null)
+export function DeleteCardConfirmDialog({ open, frontPreview, onConfirm, onOpenChange }: DeleteCardConfirmDialogProps) {
+  const confirmButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const lastActiveRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!open) {
       if (lastActiveRef.current) {
-        lastActiveRef.current.focus()
+        lastActiveRef.current.focus();
       }
-      return
+      return;
     }
 
     if (typeof document !== "undefined") {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (active instanceof HTMLElement) {
-        lastActiveRef.current = active
+        lastActiveRef.current = active;
       }
     }
 
     window.setTimeout(() => {
-      confirmButtonRef.current?.focus()
-    }, 0)
-  }, [open])
+      confirmButtonRef.current?.focus();
+    }, 0);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onOpenChange(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onOpenChange, open]);
 
   if (!open) {
-    return null
+    return null;
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
-      onClick={() => onOpenChange(false)}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+      <button
+        type="button"
+        className="absolute inset-0 z-0 cursor-pointer"
+        onClick={() => onOpenChange(false)}
+        aria-label="Close dialog"
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
+        className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-card-title"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            onOpenChange(false)
-          }
-        }}
         tabIndex={-1}
       >
         <h2 id="delete-card-title" className="text-lg font-semibold text-slate-900">
           Delete card
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          This will permanently delete the card{" "}
-          <span className="font-medium">“{frontPreview}”</span>. This action cannot be undone.
+          This will permanently delete the card <span className="font-medium">“{frontPreview}”</span>. This action
+          cannot be undone.
         </p>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -86,5 +92,5 @@ export function DeleteCardConfirmDialog({
         </div>
       </div>
     </div>
-  )
+  );
 }

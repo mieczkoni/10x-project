@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-type ForgotPasswordHeaderProps = {
-  title?: string
-  subtitle?: string
+interface ForgotPasswordHeaderProps {
+  title?: string;
+  subtitle?: string;
 }
 
 export function ForgotPasswordHeader({
@@ -14,5 +14,5 @@ export function ForgotPasswordHeader({
       <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
       <p className="text-sm text-slate-600">{subtitle}</p>
     </header>
-  )
+  );
 }

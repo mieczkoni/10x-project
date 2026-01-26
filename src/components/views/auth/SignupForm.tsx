@@ -1,16 +1,16 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import type { SignupFieldErrors, SignupFormValues } from "./signup.types"
+import type { SignupFieldErrors, SignupFormValues } from "./signup.types";
 
-export type SignupFormProps = {
-  value: SignupFormValues
-  errors: SignupFieldErrors
-  submitting: boolean
-  submitLabel?: string
-  onChange: (next: SignupFormValues) => void
-  onSubmit: (values: SignupFormValues) => Promise<void>
+export interface SignupFormProps {
+  value: SignupFormValues;
+  errors: SignupFieldErrors;
+  submitting: boolean;
+  submitLabel?: string;
+  onChange: (next: SignupFormValues) => void;
+  onSubmit: (values: SignupFormValues) => Promise<void>;
 }
 
 export function SignupForm({
@@ -21,76 +21,76 @@ export function SignupForm({
   onChange,
   onSubmit,
 }: SignupFormProps) {
-  const emailId = React.useId()
-  const passwordId = React.useId()
-  const confirmPasswordId = React.useId()
-  const emailErrorId = `${emailId}-error`
-  const passwordErrorId = `${passwordId}-error`
-  const confirmPasswordErrorId = `${confirmPasswordId}-error`
-  const emailRef = React.useRef<HTMLInputElement>(null)
-  const passwordRef = React.useRef<HTMLInputElement>(null)
-  const confirmPasswordRef = React.useRef<HTMLInputElement>(null)
+  const emailId = React.useId();
+  const passwordId = React.useId();
+  const confirmPasswordId = React.useId();
+  const emailErrorId = `${emailId}-error`;
+  const passwordErrorId = `${passwordId}-error`;
+  const confirmPasswordErrorId = `${confirmPasswordId}-error`;
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const passwordRef = React.useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = React.useRef<HTMLInputElement>(null);
   const [touched, setTouched] = React.useState({
     email: false,
     password: false,
     confirmPassword: false,
-  })
-  const [submitAttempted, setSubmitAttempted] = React.useState(false)
+  });
+  const [submitAttempted, setSubmitAttempted] = React.useState(false);
 
-  const showEmailError = Boolean((touched.email || submitAttempted) && errors.email)
-  const showPasswordError = Boolean((touched.password || submitAttempted) && errors.password)
-  const showConfirmError = Boolean((touched.confirmPassword || submitAttempted) && errors.confirmPassword)
-  const isValid = !errors.email && !errors.password && !errors.confirmPassword
+  const showEmailError = Boolean((touched.email || submitAttempted) && errors.email);
+  const showPasswordError = Boolean((touched.password || submitAttempted) && errors.password);
+  const showConfirmError = Boolean((touched.confirmPassword || submitAttempted) && errors.confirmPassword);
+  const isValid = !errors.email && !errors.password && !errors.confirmPassword;
 
   React.useEffect(() => {
     if (!submitAttempted) {
-      return
+      return;
     }
     if (errors.email && emailRef.current) {
-      emailRef.current.focus()
-      return
+      emailRef.current.focus();
+      return;
     }
     if (errors.password && passwordRef.current) {
-      passwordRef.current.focus()
-      return
+      passwordRef.current.focus();
+      return;
     }
     if (errors.confirmPassword && confirmPasswordRef.current) {
-      confirmPasswordRef.current.focus()
+      confirmPasswordRef.current.focus();
     }
-  }, [errors.confirmPassword, errors.email, errors.password, submitAttempted])
+  }, [errors.confirmPassword, errors.email, errors.password, submitAttempted]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
       if (submitting) {
-        return
+        return;
       }
-      setSubmitAttempted(true)
-      await onSubmit(value)
+      setSubmitAttempted(true);
+      await onSubmit(value);
     },
     [onSubmit, submitting, value]
-  )
+  );
 
   const handleEmailChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, email: event.target.value })
+      onChange({ ...value, email: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   const handlePasswordChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, password: event.target.value })
+      onChange({ ...value, password: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   const handleConfirmPasswordChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, confirmPassword: event.target.value })
+      onChange({ ...value, confirmPassword: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   return (
     <form noValidate className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -175,5 +175,5 @@ export function SignupForm({
         {submitting ? "Creating account..." : submitLabel}
       </Button>
     </form>
-  )
+  );
 }

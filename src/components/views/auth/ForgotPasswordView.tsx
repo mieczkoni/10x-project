@@ -1,32 +1,32 @@
-import * as React from "react"
+import * as React from "react";
 
-import { useForgotPassword } from "../../hooks/useForgotPassword"
-import { ForgotPasswordConfirmation } from "./ForgotPasswordConfirmation"
-import { ForgotPasswordErrorSummary } from "./ForgotPasswordErrorSummary"
-import { ForgotPasswordForm } from "./ForgotPasswordForm"
-import { ForgotPasswordHeader } from "./ForgotPasswordHeader"
-import { ForgotPasswordLinks } from "./ForgotPasswordLinks"
+import { useForgotPassword } from "../../hooks/useForgotPassword";
+import { ForgotPasswordConfirmation } from "./ForgotPasswordConfirmation";
+import { ForgotPasswordErrorSummary } from "./ForgotPasswordErrorSummary";
+import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { ForgotPasswordHeader } from "./ForgotPasswordHeader";
+import { ForgotPasswordLinks } from "./ForgotPasswordLinks";
 
 export function ForgotPasswordView() {
-  const { form, errors, submitting, status, errorSummary, setForm, submit, reset } = useForgotPassword()
+  const { form, errors, submitting, status, errorSummary, setForm, submit, reset } = useForgotPassword();
 
   const handleChange = React.useCallback(
     (nextForm: typeof form) => {
-      setForm(nextForm)
+      setForm(nextForm);
     },
     [setForm]
-  )
+  );
 
   const handleSubmit = React.useCallback(
     async (values: typeof form) => {
-      await submit(values)
+      await submit(values);
     },
     [submit]
-  )
+  );
 
   const handleReset = React.useCallback(() => {
-    reset()
-  }, [reset])
+    reset();
+  }, [reset]);
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-10">
@@ -47,5 +47,5 @@ export function ForgotPasswordView() {
         <ForgotPasswordLinks />
       </section>
     </main>
-  )
+  );
 }

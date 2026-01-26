@@ -41,19 +41,20 @@ vi.mock("./rate-limit.service", () => {
 
 type Uuid = `${string}-${string}-${string}-${string}-${string}`;
 
-type QueryResult<T> = { data: T; error: { message: string } | null };
+interface QueryResult<T> {
+  data: T;
+  error: { message: string } | null;
+}
 
-type BuilderOptions<T = unknown> = {
+interface BuilderOptions<T = unknown> {
   maybeSingleResult?: QueryResult<T>;
   inResult?: QueryResult<T>;
-};
+}
 
 const createBuilder = <T = unknown>(options: BuilderOptions<T> = {}) => {
   const builder: Record<string, unknown> = {};
-  const {
-    maybeSingleResult = { data: null as T, error: null },
-    inResult = { data: [] as unknown as T, error: null },
-  } = options;
+  const { maybeSingleResult = { data: null as T, error: null }, inResult = { data: [] as unknown as T, error: null } } =
+    options;
 
   return Object.assign(builder, {
     select: vi.fn().mockReturnThis(),

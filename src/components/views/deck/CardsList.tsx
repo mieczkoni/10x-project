@@ -1,19 +1,19 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CardId } from "../../../types"
-import type { CardActionStateById, CardListItemVm } from "./deck-detail.types"
-import { CardRow } from "./CardRow"
+import type { CardId } from "../../../types";
+import type { CardActionStateById, CardListItemVm } from "./deck-detail.types";
+import { CardRow } from "./CardRow";
 
-type CardsListProps = {
-  cards: CardListItemVm[]
-  actions: CardActionStateById
-  loading: boolean
-  error: string | null
-  hasFilters: boolean
-  deckId: string | null
-  onEdit: (cardId: CardId) => void
-  onDelete: (cardId: CardId) => void
-  onOpenNewCard: () => void
+interface CardsListProps {
+  cards: CardListItemVm[];
+  actions: CardActionStateById;
+  loading: boolean;
+  error: string | null;
+  hasFilters: boolean;
+  deckId: string | null;
+  onEdit: (cardId: CardId) => void;
+  onDelete: (cardId: CardId) => void;
+  onOpenNewCard: () => void;
 }
 
 export function CardsList({
@@ -32,7 +32,7 @@ export function CardsList({
       <section className="rounded-lg border border-slate-200 bg-white p-6">
         <p className="text-sm text-slate-600">Loading cards...</p>
       </section>
-    )
+    );
   }
 
   if (error) {
@@ -40,20 +40,16 @@ export function CardsList({
       <section className="rounded-lg border border-red-200 bg-red-50 p-6">
         <p className="text-sm text-red-700">{error}</p>
       </section>
-    )
+    );
   }
 
   if (cards.length === 0) {
-    const generateHref = deckId ? `/dashboard/generate?deckId=${deckId}` : "/dashboard/generate"
+    const generateHref = deckId ? `/dashboard/generate?deckId=${deckId}` : "/dashboard/generate";
     return (
       <section className="rounded-lg border border-slate-200 bg-white p-6 text-center">
-        <h2 className="text-sm font-semibold text-slate-900">
-          {hasFilters ? "No results" : "No cards yet"}
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">{hasFilters ? "No results" : "No cards yet"}</h2>
         <p className="mt-2 text-sm text-slate-600">
-          {hasFilters
-            ? "Try adjusting your filters or search terms."
-            : "Create your first card to start studying."}
+          {hasFilters ? "Try adjusting your filters or search terms." : "Create your first card to start studying."}
         </p>
         <div className="mt-4 flex flex-col justify-center gap-2 sm:flex-row">
           <button
@@ -71,22 +67,16 @@ export function CardsList({
           </a>
         </div>
       </section>
-    )
+    );
   }
 
   return (
     <section className="space-y-4">
       <ul className="space-y-3">
         {cards.map((card) => (
-          <CardRow
-            key={card.id}
-            card={card}
-            actionState={actions[card.id]}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+          <CardRow key={card.id} card={card} actionState={actions[card.id]} onEdit={onEdit} onDelete={onDelete} />
         ))}
       </ul>
     </section>
-  )
+  );
 }

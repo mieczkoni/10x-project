@@ -1,23 +1,23 @@
 ---
-import LandingHero from "./LandingHero.astro"
-import LandingPrimaryCtas from "./LandingPrimaryCtas.astro"
-import LandingPrivacyGdprNote from "./LandingPrivacyGdprNote.astro"
-import type { PublicLandingCtaVm, PublicLandingViewModel } from "./public-landing.types"
+import LandingHero from "./LandingHero.astro";
+import LandingPrimaryCtas from "./LandingPrimaryCtas.astro";
+import LandingPrivacyGdprNote from "./LandingPrivacyGdprNote.astro";
+import type { PublicLandingCtaVm, PublicLandingViewModel } from "./public-landing.types";
 
 interface Props {
-  vm: PublicLandingViewModel
+  vm: PublicLandingViewModel;
 }
 
-const { vm } = Astro.props
+const { vm } = Astro.props;
 
-const normalizedCtas = normalizeCtas(vm.primaryCtas)
+const normalizedCtas = normalizeCtas(vm.primaryCtas);
 
 function normalizeCtas(ctas: PublicLandingCtaVm[]): PublicLandingCtaVm[] {
   if (!Array.isArray(ctas)) {
-    return []
+    return [];
   }
 
-  const seen = new Set<string>()
+  const seen = new Set<string>();
 
   return ctas
     .map((cta) => ({
@@ -26,14 +26,14 @@ function normalizeCtas(ctas: PublicLandingCtaVm[]): PublicLandingCtaVm[] {
     }))
     .filter((cta) => Boolean(cta?.label) && Boolean(cta?.href) && cta.href.startsWith("/"))
     .filter((cta) => {
-      const key = `${cta.label}:${cta.href}`
+      const key = `${cta.label}:${cta.href}`;
       if (seen.has(key)) {
-        return false
+        return false;
       }
-      seen.add(key)
-      return true
+      seen.add(key);
+      return true;
     })
-    .slice(0, 2)
+    .slice(0, 2);
 }
 ---
 

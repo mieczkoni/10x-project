@@ -1,14 +1,14 @@
-import type { CandidateEditPatchVm, GeneratedCandidateVm } from "./generate.types"
-import { CandidateCard } from "./CandidateCard"
+import type { CandidateEditPatchVm, GeneratedCandidateVm } from "./generate.types";
+import { CandidateCard } from "./CandidateCard";
 
-type CandidatesListProps = {
-  items: GeneratedCandidateVm[]
-  onToggleSelected: (tempId: string) => void
-  onEdit: (tempId: string) => void
-  onRemove: (tempId: string) => void
-  onEditSave: (tempId: string, patch: CandidateEditPatchVm) => void
-  onEditCancel: (tempId: string) => void
-  disabled?: boolean
+interface CandidatesListProps {
+  items: GeneratedCandidateVm[];
+  onToggleSelected: (tempId: string) => void;
+  onEdit: (tempId: string) => void;
+  onRemove: (tempId: string) => void;
+  onEditSave: (tempId: string, patch: CandidateEditPatchVm) => void;
+  onEditCancel: (tempId: string) => void;
+  disabled?: boolean;
 }
 
 export function CandidatesList({
@@ -36,5 +36,5 @@ export function CandidatesList({
         </li>
       ))}
     </ul>
-  )
+  );
 }

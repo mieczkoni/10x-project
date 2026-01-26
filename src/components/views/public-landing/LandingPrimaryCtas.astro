@@ -1,23 +1,23 @@
 ---
-import type { PublicLandingCtaVm } from "./public-landing.types"
+import type { PublicLandingCtaVm } from "./public-landing.types";
 
 interface Props {
-  primaryCtas: PublicLandingCtaVm[]
+  primaryCtas: PublicLandingCtaVm[];
 }
 
-const { primaryCtas } = Astro.props
+const { primaryCtas } = Astro.props;
 
 const baseClasses =
-  "inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+  "inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 const variants = {
   primary: "bg-primary text-primary-foreground hover:bg-primary/90",
   secondary: "border border-border bg-background text-foreground hover:bg-muted",
-}
+};
 
 const safeCtas = Array.isArray(primaryCtas)
   ? primaryCtas.filter((cta) => Boolean(cta?.label) && Boolean(cta?.href) && cta.href.startsWith("/"))
-  : []
+  : [];
 ---
 
 {

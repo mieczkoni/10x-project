@@ -1,20 +1,20 @@
 /**
  * Zod validation schemas for Decks API endpoints.
- * 
+ *
  * These schemas validate and normalize inputs from:
  * - Query parameters (GET /decks)
  * - Path parameters (GET/PATCH/DELETE /decks/{deckId})
  * - Request bodies (POST/PATCH /decks)
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * UUID validation schema for deck IDs.
  * Used in path parameters like /decks/{deckId}.
  */
 export const deckIdParamSchema = z.object({
-  deckId: z.string().uuid({ message: 'Invalid deck ID format' }),
+  deckId: z.string().uuid({ message: "Invalid deck ID format" }),
 });
 
 /**
@@ -29,21 +29,21 @@ export const listDecksQuerySchema = z.object({
     .transform((val) => (val ? parseInt(val, 10) : 25))
     .pipe(z.number().int().min(1).max(100)),
   cursor: z.string().optional(),
-  sort: z.enum(['created_at', 'updated_at']).optional().default('created_at'),
-  order: z.enum(['asc', 'desc']).optional().default('desc'),
-  
+  sort: z.enum(["created_at", "updated_at"]).optional().default("created_at"),
+  order: z.enum(["asc", "desc"]).optional().default("desc"),
+
   // Search
   q: z
     .string()
     .optional()
-    .transform((val) => (val?.trim() || undefined))
+    .transform((val) => val?.trim() || undefined)
     .pipe(z.string().max(200).optional()),
-  
+
   // Soft-delete filtering
   includeDeleted: z
     .string()
     .optional()
-    .transform((val) => val === 'true')
+    .transform((val) => val === "true")
     .pipe(z.boolean()),
 });
 
@@ -53,14 +53,14 @@ export const listDecksQuerySchema = z.object({
  */
 export const createDeckSchema = z.object({
   name: z
-    .string({ required_error: 'Deck name is required' })
+    .string({ required_error: "Deck name is required" })
     .trim()
-    .min(1, 'Deck name cannot be empty')
-    .max(120, 'Deck name must be 120 characters or less'),
+    .min(1, "Deck name cannot be empty")
+    .max(120, "Deck name must be 120 characters or less"),
   description: z
     .string()
     .trim()
-    .max(2000, 'Description must be 2000 characters or less')
+    .max(2000, "Description must be 2000 characters or less")
     .nullable()
     .optional()
     .transform((val) => val ?? null),
@@ -75,23 +75,14 @@ export const updateDeckSchema = z
     name: z
       .string()
       .trim()
-      .min(1, 'Deck name cannot be empty')
-      .max(120, 'Deck name must be 120 characters or less')
+      .min(1, "Deck name cannot be empty")
+      .max(120, "Deck name must be 120 characters or less")
       .optional(),
-    description: z
-      .string()
-      .trim()
-      .max(2000, 'Description must be 2000 characters or less')
-      .nullable()
-      .optional(),
-    deleted_at: z
-      .string()
-      .datetime({ message: 'deleted_at must be a valid ISO timestamp' })
-      .nullable()
-      .optional(),
+    description: z.string().trim().max(2000, "Description must be 2000 characters or less").nullable().optional(),
+    deleted_at: z.string().datetime({ message: "deleted_at must be a valid ISO timestamp" }).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
-    message: 'At least one field must be provided for update',
+    message: "At least one field must be provided for update",
   });
 
 /**

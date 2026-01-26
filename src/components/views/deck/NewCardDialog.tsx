@@ -1,21 +1,21 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CardDto, CreateCardCommand, DeckId } from "../../../types"
-import { ApiError, fetchJson } from "../../../lib/http/client"
-import { useDuplicateCheck } from "../../hooks/useDuplicateCheck"
-import { normalizeTags, toCreateCardCommand, type CardEditorFormVm } from "./deck-detail.types"
+import type { CardDto, CreateCardCommand, DeckId } from "../../../types";
+import { ApiError, fetchJson } from "../../../lib/http/client";
+import { useDuplicateCheck } from "../../hooks/useDuplicateCheck";
+import { normalizeTags, toCreateCardCommand, type CardEditorFormVm } from "./deck-detail.types";
 
-type NewCardDialogProps = {
-  open: boolean
-  deckId: DeckId
-  onOpenChange: (open: boolean) => void
-  onCreated: (card: CardDto) => void
+interface NewCardDialogProps {
+  open: boolean;
+  deckId: DeckId;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (card: CardDto) => void;
 }
 
-const FRONT_MAX = 2000
-const BACK_MAX = 10000
-const TAG_MAX_COUNT = 20
-const TAG_MAX_LENGTH = 50
+const FRONT_MAX = 2000;
+const BACK_MAX = 10000;
+const TAG_MAX_COUNT = 20;
+const TAG_MAX_LENGTH = 50;
 
 const defaultForm: CardEditorFormVm = {
   front: "",
@@ -23,107 +23,107 @@ const defaultForm: CardEditorFormVm = {
   tagsText: "",
   errors: {},
   submitting: false,
-}
+};
 
 function validateForm(form: CardEditorFormVm) {
-  const errors: CardEditorFormVm["errors"] = {}
-  const front = form.front.trim()
-  const back = form.back.trim()
-  const tags = normalizeTags(form.tagsText.split(","))
+  const errors: CardEditorFormVm["errors"] = {};
+  const front = form.front.trim();
+  const back = form.back.trim();
+  const tags = normalizeTags(form.tagsText.split(","));
 
   if (!front) {
-    errors.front = "Front is required."
+    errors.front = "Front is required.";
   } else if (front.length > FRONT_MAX) {
-    errors.front = `Front must be ${FRONT_MAX} characters or less.`
+    errors.front = `Front must be ${FRONT_MAX} characters or less.`;
   }
 
   if (!back) {
-    errors.back = "Back is required."
+    errors.back = "Back is required.";
   } else if (back.length > BACK_MAX) {
-    errors.back = `Back must be ${BACK_MAX} characters or less.`
+    errors.back = `Back must be ${BACK_MAX} characters or less.`;
   }
 
   if (tags.length > TAG_MAX_COUNT) {
-    errors.tags = `Tags must be ${TAG_MAX_COUNT} or fewer.`
+    errors.tags = `Tags must be ${TAG_MAX_COUNT} or fewer.`;
   } else if (tags.some((tag) => tag.length > TAG_MAX_LENGTH)) {
-    errors.tags = `Each tag must be ${TAG_MAX_LENGTH} characters or less.`
+    errors.tags = `Each tag must be ${TAG_MAX_LENGTH} characters or less.`;
   }
 
-  return errors
+  return errors;
 }
 
 export function NewCardDialog({ open, deckId, onOpenChange, onCreated }: NewCardDialogProps) {
-  const [form, setForm] = React.useState<CardEditorFormVm>(defaultForm)
-  const frontInputRef = React.useRef<HTMLTextAreaElement | null>(null)
-  const lastActiveRef = React.useRef<HTMLElement | null>(null)
-  const duplicateState = useDuplicateCheck(deckId, form.front, form.back)
+  const [form, setForm] = React.useState<CardEditorFormVm>(defaultForm);
+  const frontInputRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const lastActiveRef = React.useRef<HTMLElement | null>(null);
+  const duplicateState = useDuplicateCheck(deckId, form.front, form.back);
 
   React.useEffect(() => {
     if (!open) {
-      setForm(defaultForm)
+      setForm(defaultForm);
       if (lastActiveRef.current) {
-        lastActiveRef.current.focus()
+        lastActiveRef.current.focus();
       }
-      return
+      return;
     }
 
     if (typeof document !== "undefined") {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (active instanceof HTMLElement) {
-        lastActiveRef.current = active
+        lastActiveRef.current = active;
       }
     }
 
     window.setTimeout(() => {
-      frontInputRef.current?.focus()
-    }, 0)
-  }, [open])
+      frontInputRef.current?.focus();
+    }, 0);
+  }, [open]);
 
   const handleClose = React.useCallback(() => {
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-      const errors = validateForm(form)
+      event.preventDefault();
+      const errors = validateForm(form);
       if (Object.keys(errors).length > 0) {
-        setForm((prev) => ({ ...prev, errors }))
-        return
+        setForm((prev) => ({ ...prev, errors }));
+        return;
       }
 
-      setForm((prev) => ({ ...prev, submitting: true, errors: {} }))
+      setForm((prev) => ({ ...prev, submitting: true, errors: {} }));
 
-      const payload: CreateCardCommand = toCreateCardCommand(deckId, form)
+      const payload: CreateCardCommand = toCreateCardCommand(deckId, form);
 
       try {
         const created = await fetchJson<CardDto>("/api/cards", {
           method: "POST",
           body: JSON.stringify(payload),
-        })
-        onCreated(created)
-        setForm(defaultForm)
-        onOpenChange(false)
+        });
+        onCreated(created);
+        setForm(defaultForm);
+        onOpenChange(false);
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
-          window.location.href = "/login"
-          return
+          window.location.href = "/login";
+          return;
         }
         if (err instanceof ApiError && err.status === 400 && err.code === "invalid_input") {
           setForm((prev) => ({
             ...prev,
             submitting: false,
             errors: { ...prev.errors, form: err.message },
-          }))
-          return
+          }));
+          return;
         }
         if (err instanceof ApiError && err.status === 404) {
           setForm((prev) => ({
             ...prev,
             submitting: false,
             errors: { ...prev.errors, form: "Deck not found. Return to the dashboard." },
-          }))
-          return
+          }));
+          return;
         }
         if (err instanceof ApiError && err.status === 409 && err.code === "duplicate_in_deck") {
           setForm((prev) => ({
@@ -133,8 +133,8 @@ export function NewCardDialog({ open, deckId, onOpenChange, onCreated }: NewCard
               ...prev.errors,
               form: "A card with identical content already exists in this deck.",
             },
-          }))
-          return
+          }));
+          return;
         }
         setForm((prev) => ({
           ...prev,
@@ -143,33 +143,44 @@ export function NewCardDialog({ open, deckId, onOpenChange, onCreated }: NewCard
             ...prev.errors,
             form: err instanceof ApiError ? err.message : "Unable to create card. Please try again.",
           },
-        }))
+        }));
       }
     },
     [deckId, form, onCreated, onOpenChange]
-  )
+  );
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleClose, open]);
 
   if (!open) {
-    return null
+    return null;
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
-      onClick={handleClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+      <button
+        type="button"
+        className="absolute inset-0 z-0 cursor-pointer"
+        onClick={handleClose}
+        aria-label="Close dialog"
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-xl rounded-lg bg-white p-6 shadow-lg"
+        className="relative z-10 w-full max-w-xl rounded-lg bg-white p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-card-title"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            handleClose()
-          }
-        }}
         tabIndex={-1}
       >
         <div className="flex flex-col gap-1">
@@ -248,9 +259,7 @@ export function NewCardDialog({ open, deckId, onOpenChange, onCreated }: NewCard
               aria-live="polite"
             >
               {duplicateState.message ||
-                (duplicateState.status === "checking"
-                  ? "Checking for duplicates…"
-                  : "No duplicate found.")}
+                (duplicateState.status === "checking" ? "Checking for duplicates…" : "No duplicate found.")}
             </div>
           ) : null}
 
@@ -280,5 +289,5 @@ export function NewCardDialog({ open, deckId, onOpenChange, onCreated }: NewCard
         </form>
       </div>
     </div>
-  )
+  );
 }
