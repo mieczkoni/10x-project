@@ -1,97 +1,113 @@
-# 10x Astro Starter
+# 10x-cards
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+![Node](https://img.shields.io/badge/node-22.14.0-3c873a)
+![Astro](https://img.shields.io/badge/astro-5-ff5d01)
+![React](https://img.shields.io/badge/react-19-149eca)
+![TypeScript](https://img.shields.io/badge/typescript-5-3178c6)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-## Tech Stack
+## Project description
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
-- [Vitest](https://vitest.dev/) - Unit and integration tests
-- [Testing Library](https://testing-library.com/) - React component tests (`@testing-library/react`, `@testing-library/user-event`)
-- [MSW](https://mswjs.io/) - API mocking for UI tests
-- [Playwright](https://playwright.dev/) - End-to-end tests (Chromium/Firefox/WebKit)
+10x-cards is a web app for creating and reviewing spaced-repetition flashcards. The MVP focuses on a generate-first flow: users paste source text, generate flashcards via an LLM, review/edit them, and save to a personal deck for scheduled reviews using an existing SRS implementation. The initial launch supports English only with basic email/password authentication.
 
-## Prerequisites
+Docs: [PRD](.ai/prd.md), [Tech stack](.ai/tech-stack.md)
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+## Table of contents
 
-## Getting started
+- [Tech stack](#tech-stack)
+- [Getting started locally](#getting-started-locally)
+- [Available scripts](#available-scripts)
+- [Project scope](#project-scope)
+- [Project status](#project-status)
+- [License](#license)
 
-1. Clone the repository:
+## Tech stack
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+Frontend
+- [Astro 5](https://astro.build/) for fast, content-focused UI with minimal JavaScript
+- [React 19](https://react.dev/) for interactive components
+- [TypeScript 5](https://www.typescriptlang.org/) for static typing
+- [Tailwind CSS 4](https://tailwindcss.com/) for styling
+- [shadcn/ui](https://ui.shadcn.com/) for accessible UI components
 
-2. Install dependencies:
+Backend
+- [Supabase](https://supabase.com/) (PostgreSQL, Auth, and SDK) as the Backend-as-a-Service
 
+AI
+- [OpenRouter](https://openrouter.ai/) for LLM access and API key spend limits
+
+Testing
+- [Vitest](https://vitest.dev/) for unit and integration tests
+- [Testing Library](https://testing-library.com/) for React component tests
+- [MSW](https://mswjs.io/) for API mocking in UI tests
+- [Playwright](https://playwright.dev/) for end-to-end testing
+
+CI/CD and hosting
+- GitHub Actions for CI/CD pipelines
+- DigitalOcean hosting via Docker image
+
+Core dependencies
+- [Supabase JS](https://supabase.com/docs/reference/javascript/introduction) for data and auth
+- [Zod](https://zod.dev/) for schema validation
+
+## Getting started locally
+
+Prerequisites
+- Node.js `22.14.0` (from `.nvmrc`)
+- npm (bundled with Node.js)
+
+Install and run
 ```bash
 npm install
-```
-
-3. Run the development server:
-
-```bash
 npm run dev
 ```
 
-4. Build for production:
-
+Optional build and preview
 ```bash
 npm run build
+npm run preview
 ```
 
-## Available Scripts
+## Available scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+- `npm run dev` - start the Astro dev server
+- `npm run dev:e2e` - start dev server in test mode for E2E
+- `npm run build` - build for production
+- `npm run preview` - preview the production build
+- `npm run astro` - run Astro CLI
+- `npm run lint` - run ESLint
+- `npm run lint:fix` - run ESLint with auto-fix
+- `npm run format` - format with Prettier
+- `npm run test:unit` - run Vitest in CI mode
+- `npm run test:unit:watch` - watch mode for unit tests
+- `npm run test:unit:ui` - Vitest UI
+- `npm run test:e2e` - run Playwright tests
+- `npm run test:e2e:ui` - Playwright UI
+- `npm run test:e2e:debug` - Playwright debug mode
+- `npm run test:e2e:report` - show Playwright report
 
-## Project Structure
+## Project scope
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+Included in MVP
+- AI generation from pasted text with accept/edit/save workflow
+- Manual card creation and CRUD for cards and decks
+- Email/password auth with password reset
+- Integration with an existing spaced-repetition algorithm
+- Event instrumentation for AI acceptance metrics
+- Immediate, irreversible account deletion (GDPR)
 
-## AI Development Support
+Excluded from MVP
+- Custom spaced-repetition algorithm
+- File imports beyond copy-paste text (PDF/DOCX)
+- Sharing or collaboration between users
+- Third-party learning platform integrations
+- Native mobile apps
+- Email verification during sign-up
+- Backups or soft deletes for user data
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+## Project status
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
-
-### Cursor IDE
-
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+MVP scope is defined in the PRD and is under active development.
 
 ## License
 
