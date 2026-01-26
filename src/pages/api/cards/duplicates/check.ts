@@ -16,6 +16,7 @@ import type { APIRoute } from "astro";
 import { checkCardDuplicateSchema } from "../../../../lib/validation/cards.zod";
 import { checkCardDuplicate } from "../../../../lib/services/cards.service";
 import { jsonOk, ApiErrors } from "../../../../lib/http/api-response";
+import { logger } from "../../../../lib/logger";
 
 export const POST: APIRoute = async ({ request, locals }) => {
   // Step 1: Verify authentication
@@ -54,7 +55,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }
 
       // Log unexpected errors for debugging (don't expose details to client)
-      console.error("Error checking card duplicate:", {
+      logger.error("Error checking card duplicate", {
         userId: user.id,
         deckId: parseResult.data.deck_id,
         error: error.message,

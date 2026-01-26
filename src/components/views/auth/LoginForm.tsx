@@ -1,85 +1,73 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import type { LoginFieldErrors, LoginFormValues } from "./login.types"
+import type { LoginFieldErrors, LoginFormValues } from "./login.types";
 
-export type LoginFormProps = {
-  value: LoginFormValues
-  errors: LoginFieldErrors
-  submitting: boolean
-  submitLabel?: string
-  onChange: (next: LoginFormValues) => void
-  onSubmit: (values: LoginFormValues) => Promise<void>
+export interface LoginFormProps {
+  value: LoginFormValues;
+  errors: LoginFieldErrors;
+  submitting: boolean;
+  submitLabel?: string;
+  onChange: (next: LoginFormValues) => void;
+  onSubmit: (values: LoginFormValues) => Promise<void>;
 }
 
-export function LoginForm({
-  value,
-  errors,
-  submitting,
-  submitLabel = "Log in",
-  onChange,
-  onSubmit,
-}: LoginFormProps) {
-  const emailId = React.useId()
-  const passwordId = React.useId()
-  const emailErrorId = `${emailId}-error`
-  const passwordErrorId = `${passwordId}-error`
-  const emailRef = React.useRef<HTMLInputElement>(null)
-  const passwordRef = React.useRef<HTMLInputElement>(null)
-  const [touched, setTouched] = React.useState({ email: false, password: false })
-  const [submitAttempted, setSubmitAttempted] = React.useState(false)
+export function LoginForm({ value, errors, submitting, submitLabel = "Log in", onChange, onSubmit }: LoginFormProps) {
+  const emailId = React.useId();
+  const passwordId = React.useId();
+  const emailErrorId = `${emailId}-error`;
+  const passwordErrorId = `${passwordId}-error`;
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const passwordRef = React.useRef<HTMLInputElement>(null);
+  const [touched, setTouched] = React.useState({ email: false, password: false });
+  const [submitAttempted, setSubmitAttempted] = React.useState(false);
 
-  const showEmailError = Boolean((touched.email || submitAttempted) && errors.email)
-  const showPasswordError = Boolean((touched.password || submitAttempted) && errors.password)
-  const isValid = !errors.email && !errors.password
+  const showEmailError = Boolean((touched.email || submitAttempted) && errors.email);
+  const showPasswordError = Boolean((touched.password || submitAttempted) && errors.password);
+  const isValid = !errors.email && !errors.password;
 
   React.useEffect(() => {
     if (!submitAttempted) {
-      return
+      return;
     }
     if (errors.email && emailRef.current) {
-      emailRef.current.focus()
-      return
+      emailRef.current.focus();
+      return;
     }
     if (errors.password && passwordRef.current) {
-      passwordRef.current.focus()
+      passwordRef.current.focus();
     }
-  }, [errors.email, errors.password, submitAttempted])
+  }, [errors.email, errors.password, submitAttempted]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
       if (submitting) {
-        return
+        return;
       }
-      setSubmitAttempted(true)
-      await onSubmit(value)
+      setSubmitAttempted(true);
+      await onSubmit(value);
     },
     [onSubmit, submitting, value]
-  )
+  );
 
   const handleEmailChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, email: event.target.value })
+      onChange({ ...value, email: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   const handlePasswordChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, password: event.target.value })
+      onChange({ ...value, password: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   return (
-    <form
-      noValidate
-      className="flex flex-col gap-4"
-      onSubmit={handleSubmit}
-      data-test-id="login-form"
-    >
+    <form noValidate className="flex flex-col gap-4" onSubmit={handleSubmit} data-test-id="login-form">
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-slate-600" htmlFor={emailId}>
           Email
@@ -143,5 +131,5 @@ export function LoginForm({
         {submitting ? "Logging in..." : submitLabel}
       </Button>
     </form>
-  )
+  );
 }

@@ -1,51 +1,51 @@
-import type { DeckDto, DeckId } from "../../../types"
+import type { DeckDto, DeckId } from "../../../types";
 
-export type DeckListItemVm = {
-  id: DeckId
-  name: string
-  description: string | null
-  deletedAt: string | null
-  updatedAt: string
+export interface DeckListItemVm {
+  id: DeckId;
+  name: string;
+  description: string | null;
+  deletedAt: string | null;
+  updatedAt: string;
 }
 
-export type CurrentDeckVm = {
-  deckId: DeckId | null
-  deckName: string | null
+export interface CurrentDeckVm {
+  deckId: DeckId | null;
+  deckName: string | null;
 }
 
-export type DeckActionState = {
-  isRenaming: boolean
-  isDeleting: boolean
-  optimisticName?: string
-  optimisticDescription?: string | null
-  error?: string
+export interface DeckActionState {
+  isRenaming: boolean;
+  isDeleting: boolean;
+  optimisticName?: string;
+  optimisticDescription?: string | null;
+  error?: string;
 }
 
-export type DeckActionStateById = Record<DeckId, DeckActionState>
+export type DeckActionStateById = Record<DeckId, DeckActionState>;
 
-export type DecksQueryVm = {
-  q: string
-  limit: number
-  cursor: string | null
-  sort: "created_at" | "updated_at"
-  order: "asc" | "desc"
-  includeDeleted: boolean
+export interface DecksQueryVm {
+  q: string;
+  limit: number;
+  cursor: string | null;
+  sort: "created_at" | "updated_at";
+  order: "asc" | "desc";
+  includeDeleted: boolean;
 }
 
-export type DecksPageVm = {
-  nextCursor: string | null
-  limit: number
+export interface DecksPageVm {
+  nextCursor: string | null;
+  limit: number;
 }
 
-export type CreateDeckFormVm = {
-  name: string
-  description: string
+export interface CreateDeckFormVm {
+  name: string;
+  description: string;
   errors: {
-    name?: string
-    description?: string
-    form?: string
-  }
-  submitting: boolean
+    name?: string;
+    description?: string;
+    form?: string;
+  };
+  submitting: boolean;
 }
 
 export function toDeckListItemVm(deck: DeckDto): DeckListItemVm {
@@ -55,5 +55,5 @@ export function toDeckListItemVm(deck: DeckDto): DeckListItemVm {
     description: deck.description,
     deletedAt: deck.deleted_at,
     updatedAt: deck.updated_at,
-  }
+  };
 }

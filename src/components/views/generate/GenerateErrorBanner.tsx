@@ -1,12 +1,12 @@
-import type { GenerateUiErrorVm } from "./generate.types"
+import type { GenerateUiErrorVm } from "./generate.types";
 
-type GenerateErrorBannerProps = {
-  errors: GenerateUiErrorVm[]
+interface GenerateErrorBannerProps {
+  errors: GenerateUiErrorVm[];
 }
 
 export function GenerateErrorBanner({ errors }: GenerateErrorBannerProps) {
   if (errors.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -17,5 +17,5 @@ export function GenerateErrorBanner({ errors }: GenerateErrorBannerProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

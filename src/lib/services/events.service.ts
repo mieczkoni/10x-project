@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { EventType, JsonObject, UserId } from "../../types";
+import { logger } from "../logger";
 
 /**
  * Writes a telemetry event. Failures are intentionally swallowed to avoid
@@ -18,7 +19,7 @@ export async function createEvent(
   });
 
   if (error) {
-    console.error("[events.service] Failed to create event", {
+    logger.error("[events.service] Failed to create event", {
       eventType,
       userId,
       error: error.message,

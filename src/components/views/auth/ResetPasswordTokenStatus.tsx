@@ -1,9 +1,9 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { RecoveryStatusVm } from "./reset-password.types"
+import type { RecoveryStatusVm } from "./reset-password.types";
 
-type ResetPasswordTokenStatusProps = {
-  status: RecoveryStatusVm
+interface ResetPasswordTokenStatusProps {
+  status: RecoveryStatusVm;
 }
 
 export function ResetPasswordTokenStatus({ status }: ResetPasswordTokenStatusProps) {
@@ -14,7 +14,7 @@ export function ResetPasswordTokenStatus({ status }: ResetPasswordTokenStatusPro
         ? "Link verified."
         : status === "missing"
           ? "Reset link missing."
-          : "Reset link invalid or expired."
+          : "Reset link invalid or expired.";
 
-  return <p className="text-xs text-slate-500">{copy}</p>
+  return <p className="text-xs text-slate-500">{copy}</p>;
 }

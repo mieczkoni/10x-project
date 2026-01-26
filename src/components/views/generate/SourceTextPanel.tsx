@@ -1,18 +1,18 @@
-import type { GenerateOptionsVm, GeneratePreflightVm, GenerateSourceVm } from "./generate.types"
-import { GenerateControls } from "./GenerateControls"
-import { InputPreflightStatus } from "./InputPreflightStatus"
-import { SourceTextEditor } from "./SourceTextEditor"
+import type { GenerateOptionsVm, GeneratePreflightVm, GenerateSourceVm } from "./generate.types";
+import { GenerateControls } from "./GenerateControls";
+import { InputPreflightStatus } from "./InputPreflightStatus";
+import { SourceTextEditor } from "./SourceTextEditor";
 
-type SourceTextPanelProps = {
-  source: GenerateSourceVm
-  preflight: GeneratePreflightVm
-  options: GenerateOptionsVm
-  generating: boolean
-  onSourceChange: (text: string) => void
-  onValidate?: () => void
-  onGenerate: () => void
-  onOptionsChange?: (patch: Partial<GenerateOptionsVm>) => void
-  disabled?: boolean
+interface SourceTextPanelProps {
+  source: GenerateSourceVm;
+  preflight: GeneratePreflightVm;
+  options: GenerateOptionsVm;
+  generating: boolean;
+  onSourceChange: (text: string) => void;
+  onValidate?: () => void;
+  onGenerate: () => void;
+  onOptionsChange?: (patch: Partial<GenerateOptionsVm>) => void;
+  disabled?: boolean;
 }
 
 export function SourceTextPanel({
@@ -52,5 +52,5 @@ export function SourceTextPanel({
         />
       </div>
     </section>
-  )
+  );
 }

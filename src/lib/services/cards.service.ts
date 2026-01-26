@@ -30,6 +30,7 @@ import type {
 } from "../../types";
 import type { ListCardsQuery } from "../validation/cards.zod";
 import { decodeCursor, extractCursor } from "../pagination/cursor";
+import { logger } from "../logger";
 import { createEvent } from "./events.service";
 
 /**
@@ -114,7 +115,7 @@ export async function bulkCreateCards(
       return { ...candidate, content_hash: contentHash, index };
     });
   } catch (error) {
-    console.error("[POST /api/cards/bulk-create] Content hash computation failed", {
+    logger.error("[POST /api/cards/bulk-create] Content hash computation failed", {
       userId,
       deckId: command.deck_id,
       count: command.cards.length,
@@ -161,7 +162,7 @@ export async function bulkCreateCards(
     .select("id, front, back, content_hash");
 
   if (insertError) {
-    console.error("[POST /api/cards/bulk-create] Failed to bulk insert cards", {
+    logger.error("[POST /api/cards/bulk-create] Failed to bulk insert cards", {
       userId,
       deckId: command.deck_id,
       errorCode: insertError.code,
@@ -212,7 +213,7 @@ export async function bulkCreateCards(
   }
 
   if (created.length === 0 && uniqueByHash.size > 0 && skipped.length === 0) {
-    console.error("[POST /api/cards/bulk-create] Unexpected empty result (no created, no skipped)", {
+    logger.error("[POST /api/cards/bulk-create] Unexpected empty result (no created, no skipped)", {
       userId,
       deckId: command.deck_id,
       requestCandidates: uniqueByHash.size,

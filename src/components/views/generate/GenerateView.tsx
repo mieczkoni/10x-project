@@ -1,95 +1,95 @@
-import * as React from "react"
+import * as React from "react";
 
-import { useCurrentDeck } from "../../hooks/useCurrentDeck"
-import { useDecksList } from "../../hooks/useDecksList"
-import { useGenerateWorkflow } from "../../hooks/useGenerateWorkflow"
-import { AppHeader } from "../app/AppHeader"
-import { BulkActionBar } from "./BulkActionBar"
-import { CandidatesPanel } from "./CandidatesPanel"
-import { GenerateErrorBanner } from "./GenerateErrorBanner"
-import { GenerateHeader } from "./GenerateHeader"
-import { SaveResultsPanel } from "./SaveResultsPanel"
-import { SelectDeckDialog } from "./SelectDeckDialog"
-import { SourceTextPanel } from "./SourceTextPanel"
+import { useCurrentDeck } from "../../hooks/useCurrentDeck";
+import { useDecksList } from "../../hooks/useDecksList";
+import { useGenerateWorkflow } from "../../hooks/useGenerateWorkflow";
+import { AppHeader } from "../app/AppHeader";
+import { BulkActionBar } from "./BulkActionBar";
+import { CandidatesPanel } from "./CandidatesPanel";
+import { GenerateErrorBanner } from "./GenerateErrorBanner";
+import { GenerateHeader } from "./GenerateHeader";
+import { SaveResultsPanel } from "./SaveResultsPanel";
+import { SelectDeckDialog } from "./SelectDeckDialog";
+import { SourceTextPanel } from "./SourceTextPanel";
 
-type GenerateViewProps = {
-  userEmail?: string | null
+interface GenerateViewProps {
+  userEmail?: string | null;
 }
 
 export function GenerateView({ userEmail }: GenerateViewProps) {
-  const { decks, loadingInitial } = useDecksList()
-  const { currentDeck, setCurrentDeck } = useCurrentDeck(decks)
+  const { decks, loadingInitial } = useDecksList();
+  const { currentDeck, setCurrentDeck } = useCurrentDeck(decks);
   const workflow = useGenerateWorkflow(currentDeck.deckId, {
     onDeckNotFound: () => setCurrentDeck(null),
-  })
-  const { state } = workflow
-  const [selectDeckOpen, setSelectDeckOpen] = React.useState(false)
-  const [pendingDeckId, setPendingDeckId] = React.useState(currentDeck.deckId)
-  const [urlDeckId, setUrlDeckId] = React.useState<string | null>(null)
+  });
+  const { state } = workflow;
+  const [selectDeckOpen, setSelectDeckOpen] = React.useState(false);
+  const [pendingDeckId, setPendingDeckId] = React.useState(currentDeck.deckId);
+  const [urlDeckId, setUrlDeckId] = React.useState<string | null>(null);
   const isDeckLocked = React.useMemo(() => {
     if (!urlDeckId) {
-      return false
+      return false;
     }
-    return decks.some((deck) => deck.id === urlDeckId)
-  }, [decks, urlDeckId])
+    return decks.some((deck) => deck.id === urlDeckId);
+  }, [decks, urlDeckId]);
 
   React.useEffect(() => {
     if (typeof window === "undefined") {
-      return
+      return;
     }
-    const params = new URLSearchParams(window.location.search)
-    const deckId = params.get("deckId")
-    setUrlDeckId(deckId && deckId.trim() ? deckId.trim() : null)
-  }, [])
+    const params = new URLSearchParams(window.location.search);
+    const deckId = params.get("deckId");
+    setUrlDeckId(deckId && deckId.trim() ? deckId.trim() : null);
+  }, []);
 
   React.useEffect(() => {
     if (!selectDeckOpen) {
-      setPendingDeckId(currentDeck.deckId)
+      setPendingDeckId(currentDeck.deckId);
     }
-  }, [currentDeck.deckId, selectDeckOpen])
+  }, [currentDeck.deckId, selectDeckOpen]);
 
   React.useEffect(() => {
     if (decks.length === 0) {
-      return
+      return;
     }
     if (typeof window === "undefined") {
-      return
+      return;
     }
     if (currentDeck.deckId) {
-      return
+      return;
     }
     if (urlDeckId && decks.some((deck) => deck.id === urlDeckId)) {
-      setCurrentDeck(urlDeckId as typeof decks[number]["id"])
-      return
+      setCurrentDeck(urlDeckId as (typeof decks)[number]["id"]);
+      return;
     }
-    const stored = window.localStorage.getItem("currentDeckId")
+    const stored = window.localStorage.getItem("currentDeckId");
     if (stored && decks.some((deck) => deck.id === stored)) {
-      setCurrentDeck(stored as typeof decks[number]["id"])
-      return
+      setCurrentDeck(stored as (typeof decks)[number]["id"]);
+      return;
     }
     if (!stored) {
-      setCurrentDeck(decks[0].id)
+      setCurrentDeck(decks[0].id);
     }
-  }, [currentDeck.deckId, decks, setCurrentDeck, urlDeckId])
+  }, [currentDeck.deckId, decks, setCurrentDeck, urlDeckId]);
 
   React.useEffect(() => {
     if (!urlDeckId || decks.length === 0) {
-      return
+      return;
     }
     if (!decks.some((deck) => deck.id === urlDeckId)) {
-      return
+      return;
     }
     if (currentDeck.deckId === urlDeckId) {
-      return
+      return;
     }
-    setCurrentDeck(urlDeckId as typeof decks[number]["id"])
-  }, [currentDeck.deckId, decks, setCurrentDeck, urlDeckId])
+    setCurrentDeck(urlDeckId as (typeof decks)[number]["id"]);
+  }, [currentDeck.deckId, decks, setCurrentDeck, urlDeckId]);
 
   const selectedCount = React.useMemo(
     () => state.candidates.filter((candidate) => candidate.selected).length,
     [state.candidates]
-  )
-  const canSave = selectedCount > 0 && !state.loading.saving
+  );
+  const canSave = selectedCount > 0 && !state.loading.saving;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -131,10 +131,10 @@ export function GenerateView({ userEmail }: GenerateViewProps) {
           canSave={canSave}
           onSaveSelected={() => {
             if (!currentDeck.deckId) {
-              setSelectDeckOpen(true)
-              return
+              setSelectDeckOpen(true);
+              return;
             }
-            void workflow.saveSelected({ deckId: currentDeck.deckId })
+            void workflow.saveSelected({ deckId: currentDeck.deckId });
           }}
           onClearSelection={workflow.clearSelection}
         />
@@ -148,15 +148,15 @@ export function GenerateView({ userEmail }: GenerateViewProps) {
           onChange={(deckId) => setPendingDeckId(deckId)}
           onConfirm={() => {
             if (!pendingDeckId) {
-              return
+              return;
             }
-            setCurrentDeck(pendingDeckId)
-            setSelectDeckOpen(false)
-            void workflow.saveSelected({ deckId: pendingDeckId })
+            setCurrentDeck(pendingDeckId);
+            setSelectDeckOpen(false);
+            void workflow.saveSelected({ deckId: pendingDeckId });
           }}
           onOpenChange={setSelectDeckOpen}
         />
       </main>
     </div>
-  )
+  );
 }

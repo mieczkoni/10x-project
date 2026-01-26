@@ -1,11 +1,8 @@
-import type { APIRoute } from 'astro';
-import { ZodError } from 'zod';
+import type { APIRoute } from "astro";
+import { ZodError } from "zod";
 
-import { ApiErrors, jsonOk } from '../../../lib/http/api-response';
-import {
-  generateValidationLimits,
-  validateGenerateInputSchema,
-} from '../../../lib/validation/generate.zod';
+import { ApiErrors, jsonOk } from "../../../lib/http/api-response";
+import { generateValidationLimits, validateGenerateInputSchema } from "../../../lib/validation/generate.zod";
 
 export const prerender = false;
 
@@ -30,7 +27,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   try {
     body = await request.json();
   } catch {
-    return ApiErrors.invalidInput('Invalid JSON in request body');
+    return ApiErrors.invalidInput("Invalid JSON in request body");
   }
 
   try {
@@ -38,7 +35,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const inputChars = validated.source_text.length;
 
     if (inputChars > generateValidationLimits.MAX_SOURCE_TEXT_CHARS) {
-      return ApiErrors.inputTooLarge('source_text exceeds maximum allowed length', {
+      return ApiErrors.inputTooLarge("source_text exceeds maximum allowed length", {
         input_chars: inputChars,
         max_chars: generateValidationLimits.MAX_SOURCE_TEXT_CHARS,
       });
@@ -51,12 +48,12 @@ export const POST: APIRoute = async ({ locals, request }) => {
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      const tooLarge = error.errors.some((issue) => issue.code === 'too_big');
+      const tooLarge = error.errors.some((issue) => issue.code === "too_big");
       if (tooLarge) {
-        return ApiErrors.inputTooLarge('source_text exceeds maximum allowed length');
+        return ApiErrors.inputTooLarge("source_text exceeds maximum allowed length");
       }
 
-      return ApiErrors.invalidInput('Invalid request body', {
+      return ApiErrors.invalidInput("Invalid request body", {
         issues: JSON.parse(JSON.stringify(error.errors)),
       });
     }

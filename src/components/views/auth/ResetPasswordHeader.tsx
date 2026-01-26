@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-type ResetPasswordHeaderProps = {
-  title?: string
-  subtitle?: string
+interface ResetPasswordHeaderProps {
+  title?: string;
+  subtitle?: string;
 }
 
 export function ResetPasswordHeader({
@@ -14,5 +14,5 @@ export function ResetPasswordHeader({
       <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
       <p className="text-sm text-slate-600">{subtitle}</p>
     </header>
-  )
+  );
 }

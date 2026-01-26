@@ -1,35 +1,35 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CandidateEditPatchVm, GeneratedCandidateVm } from "./generate.types"
+import type { CandidateEditPatchVm, GeneratedCandidateVm } from "./generate.types";
 
-type CandidateCardProps = {
-  candidate: GeneratedCandidateVm
-  onToggleSelected: (tempId: string) => void
-  onEdit: (tempId: string) => void
-  onRemove: (tempId: string) => void
-  onEditSave: (tempId: string, patch: CandidateEditPatchVm) => void
-  onEditCancel: (tempId: string) => void
-  disabled?: boolean
+interface CandidateCardProps {
+  candidate: GeneratedCandidateVm;
+  onToggleSelected: (tempId: string) => void;
+  onEdit: (tempId: string) => void;
+  onRemove: (tempId: string) => void;
+  onEditSave: (tempId: string, patch: CandidateEditPatchVm) => void;
+  onEditCancel: (tempId: string) => void;
+  disabled?: boolean;
 }
 
-type InlineFormState = {
-  front: string
-  back: string
-  tagsText: string
+interface InlineFormState {
+  front: string;
+  back: string;
+  tagsText: string;
 }
 
 const defaultFormState: InlineFormState = {
   front: "",
   back: "",
   tagsText: "",
-}
+};
 
 function toInlineForm(candidate: GeneratedCandidateVm): InlineFormState {
   return {
     front: candidate.front,
     back: candidate.back,
     tagsText: candidate.tags.join(", "),
-  }
+  };
 }
 
 export function CandidateCard({
@@ -41,16 +41,16 @@ export function CandidateCard({
   onEditCancel,
   disabled = false,
 }: CandidateCardProps) {
-  const [form, setForm] = React.useState<InlineFormState>(defaultFormState)
+  const [form, setForm] = React.useState<InlineFormState>(defaultFormState);
 
   React.useEffect(() => {
     if (candidate.editing) {
-      setForm(toInlineForm(candidate))
+      setForm(toInlineForm(candidate));
     }
-  }, [candidate])
+  }, [candidate]);
 
-  const isSaving = candidate.saveStatus === "saving"
-  const actionDisabled = disabled || isSaving
+  const isSaving = candidate.saveStatus === "saving";
+  const actionDisabled = disabled || isSaving;
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4">
@@ -87,9 +87,7 @@ export function CandidateCard({
                 disabled={actionDisabled}
                 aria-invalid={Boolean(candidate.errors.front)}
               />
-              {candidate.errors.front ? (
-                <p className="text-xs text-red-600">{candidate.errors.front}</p>
-              ) : null}
+              {candidate.errors.front ? <p className="text-xs text-red-600">{candidate.errors.front}</p> : null}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -104,9 +102,7 @@ export function CandidateCard({
                 disabled={actionDisabled}
                 aria-invalid={Boolean(candidate.errors.back)}
               />
-              {candidate.errors.back ? (
-                <p className="text-xs text-red-600">{candidate.errors.back}</p>
-              ) : null}
+              {candidate.errors.back ? <p className="text-xs text-red-600">{candidate.errors.back}</p> : null}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -121,9 +117,7 @@ export function CandidateCard({
                 disabled={actionDisabled}
                 aria-invalid={Boolean(candidate.errors.tags)}
               />
-              {candidate.errors.tags ? (
-                <p className="text-xs text-red-600">{candidate.errors.tags}</p>
-              ) : null}
+              {candidate.errors.tags ? <p className="text-xs text-red-600">{candidate.errors.tags}</p> : null}
             </div>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -164,10 +158,7 @@ export function CandidateCard({
             {candidate.tags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {candidate.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600"
-                  >
+                  <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
                     {tag}
                   </span>
                 ))}
@@ -205,5 +196,5 @@ export function CandidateCard({
         )}
       </div>
     </div>
-  )
+  );
 }

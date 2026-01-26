@@ -1,20 +1,15 @@
-import type { DeckId } from "../../../types"
-import type { CurrentDeckVm, DeckListItemVm } from "../dashboard/dashboard.types"
-import { CurrentDeckSelector } from "../dashboard/CurrentDeckSelector"
+import type { DeckId } from "../../../types";
+import type { CurrentDeckVm, DeckListItemVm } from "../dashboard/dashboard.types";
+import { CurrentDeckSelector } from "../dashboard/CurrentDeckSelector";
 
-type GenerateHeaderProps = {
-  decks: DeckListItemVm[]
-  currentDeck: CurrentDeckVm
-  onSelectDeck: (deckId: DeckId) => void
-  disabled?: boolean
+interface GenerateHeaderProps {
+  decks: DeckListItemVm[];
+  currentDeck: CurrentDeckVm;
+  onSelectDeck: (deckId: DeckId) => void;
+  disabled?: boolean;
 }
 
-export function GenerateHeader({
-  decks,
-  currentDeck,
-  onSelectDeck,
-  disabled = false,
-}: GenerateHeaderProps) {
+export function GenerateHeader({ decks, currentDeck, onSelectDeck, disabled = false }: GenerateHeaderProps) {
   return (
     <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex flex-col gap-1">
@@ -24,12 +19,7 @@ export function GenerateHeader({
         </p>
       </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <CurrentDeckSelector
-          decks={decks}
-          value={currentDeck.deckId}
-          onChange={onSelectDeck}
-          disabled={disabled}
-        />
+        <CurrentDeckSelector decks={decks} value={currentDeck.deckId} onChange={onSelectDeck} disabled={disabled} />
         <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-700">
           {currentDeck.deckId ? (
             <a
@@ -42,5 +32,5 @@ export function GenerateHeader({
         </div>
       </div>
     </header>
-  )
+  );
 }

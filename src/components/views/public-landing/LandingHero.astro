@@ -1,12 +1,12 @@
 ---
-import type { PublicLandingHeroVm } from "./public-landing.types"
+import type { PublicLandingHeroVm } from "./public-landing.types";
 
 interface Props {
-  hero: PublicLandingHeroVm
+  hero: PublicLandingHeroVm;
 }
 
-const { hero } = Astro.props
-const steps = hero.howItWorksSteps ?? []
+const { hero } = Astro.props;
+const steps = hero.howItWorksSteps ?? [];
 ---
 
 <header class="flex flex-col gap-6">

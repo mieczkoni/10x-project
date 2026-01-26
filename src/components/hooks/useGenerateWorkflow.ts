@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 
 import type {
   BulkCreateCardsCommand,
@@ -9,8 +9,8 @@ import type {
   GeneratedCandidateDto,
   ValidateGenerateInputCommand,
   ValidateGenerateInputResponseDto,
-} from "../../types"
-import { ApiError, fetchJson } from "../../lib/http/client"
+} from "../../types";
+import { ApiError, fetchJson } from "../../lib/http/client";
 import type {
   CandidateEditPatchVm,
   CandidateSaveStatus,
@@ -22,31 +22,31 @@ import type {
   GeneratedCandidateVm,
   GenerationMetaVm,
   SaveResultsVm,
-} from "../views/generate/generate.types"
+} from "../views/generate/generate.types";
 
-const DEFAULT_MAX_SOURCE_CHARS = 20000
-const DEFAULT_MAX_CARDS = 20
-const STORAGE_KEY = "generateWorkflowDraftV1"
+const DEFAULT_MAX_SOURCE_CHARS = 20000;
+const DEFAULT_MAX_CARDS = 20;
+const STORAGE_KEY = "generateWorkflowDraftV1";
 
 const DEFAULT_OPTIONS: GenerateOptionsVm = {
   maxCards: DEFAULT_MAX_CARDS,
   language: "en",
   model: null,
-}
+};
 
 const DEFAULT_SOURCE: GenerateSourceVm = {
   text: "",
   inputChars: 0,
   maxChars: DEFAULT_MAX_SOURCE_CHARS,
   error: null,
-}
+};
 
 const DEFAULT_PREFLIGHT: GeneratePreflightVm = {
   status: "idle",
   lastValidatedChars: null,
   maxChars: DEFAULT_MAX_SOURCE_CHARS,
   message: null,
-}
+};
 
 const DEFAULT_RESULTS: SaveResultsVm = {
   status: "idle",
@@ -55,37 +55,37 @@ const DEFAULT_RESULTS: SaveResultsVm = {
   skipped: [],
   message: null,
   error: null,
-}
+};
 
 function normalizeTags(tags: string[]): string[] {
-  const unique = new Set<string>()
+  const unique = new Set<string>();
   for (const tag of tags) {
-    const normalized = tag.trim().toLowerCase()
+    const normalized = tag.trim().toLowerCase();
     if (!normalized) {
-      continue
+      continue;
     }
     if (normalized.length > 50) {
-      unique.add(normalized.slice(0, 50))
-      continue
+      unique.add(normalized.slice(0, 50));
+      continue;
     }
-    unique.add(normalized)
+    unique.add(normalized);
   }
-  return Array.from(unique).slice(0, 20)
+  return Array.from(unique).slice(0, 20);
 }
 
 function validateSource(source: GenerateSourceVm): string | null {
-  const trimmed = source.text.trim()
+  const trimmed = source.text.trim();
   if (trimmed.length < 1) {
-    return "Add some source text to generate cards."
+    return "Add some source text to generate cards.";
   }
   if (source.text.length > source.maxChars) {
-    return `Source text must be ${source.maxChars.toLocaleString()} characters or less.`
+    return `Source text must be ${source.maxChars.toLocaleString()} characters or less.`;
   }
-  return null
+  return null;
 }
 
 function mapCandidate(dto: GeneratedCandidateDto): GeneratedCandidateVm {
-  const tags = dto.tags ?? []
+  const tags = dto.tags ?? [];
   return {
     tempId: dto.temp_id,
     front: dto.front,
@@ -106,7 +106,7 @@ function mapCandidate(dto: GeneratedCandidateDto): GeneratedCandidateVm {
       back: dto.back,
       tags,
     },
-  }
+  };
 }
 
 function toGenerationMetaVm(dto: GenerateResponseDto["generation"]): GenerationMetaVm {
@@ -115,30 +115,30 @@ function toGenerationMetaVm(dto: GenerateResponseDto["generation"]): GenerationM
     createdAt: dto.created_at,
     model: dto.model,
     inputChars: dto.input_chars,
-  }
+  };
 }
 
 function sanitizeOptions(options: GenerateOptionsVm): GenerateOptionsVm {
   const maxCards = Number.isFinite(options.maxCards)
     ? Math.min(Math.max(Math.floor(options.maxCards), 1), 20)
-    : DEFAULT_MAX_CARDS
-  const model = options.model?.trim() ? options.model.trim() : null
+    : DEFAULT_MAX_CARDS;
+  const model = options.model?.trim() ? options.model.trim() : null;
   return {
     maxCards,
     language: options.language,
     model,
-  }
+  };
 }
 
 function mapSaveResults(response: BulkCreateCardsResponseDto): SaveResultsVm {
-  const createdCount = response.created.length
-  const skippedCount = response.skipped.length
+  const createdCount = response.created.length;
+  const skippedCount = response.skipped.length;
   const message =
     createdCount || skippedCount
       ? `Saved ${createdCount} card${createdCount === 1 ? "" : "s"}, skipped ${skippedCount} duplicate${
           skippedCount === 1 ? "" : "s"
         }.`
-      : "No cards were saved."
+      : "No cards were saved.";
 
   return {
     status: "success",
@@ -151,71 +151,71 @@ function mapSaveResults(response: BulkCreateCardsResponseDto): SaveResultsVm {
     })),
     message,
     error: null,
-  }
+  };
 }
 
 function sameCardKey(front: string, back: string): string {
-  return `${front.trim()}|||${back.trim()}`
+  return `${front.trim()}|||${back.trim()}`;
 }
 
 function applyCandidateSaveStatus(
   candidates: GeneratedCandidateVm[],
   response: BulkCreateCardsResponseDto
 ): GeneratedCandidateVm[] {
-  const createdKeys = new Set(response.created.map((item) => sameCardKey(item.front, item.back)))
-  const skippedKeys = new Set(response.skipped.map((item) => sameCardKey(item.front, item.back)))
+  const createdKeys = new Set(response.created.map((item) => sameCardKey(item.front, item.back)));
+  const skippedKeys = new Set(response.skipped.map((item) => sameCardKey(item.front, item.back)));
 
   return candidates.map((candidate) => {
-    const key = sameCardKey(candidate.front, candidate.back)
-    let saveStatus: CandidateSaveStatus = candidate.saveStatus
-    let selected = candidate.selected
+    const key = sameCardKey(candidate.front, candidate.back);
+    let saveStatus: CandidateSaveStatus = candidate.saveStatus;
+    let selected = candidate.selected;
     if (createdKeys.has(key)) {
-      saveStatus = "saved"
-      selected = false
+      saveStatus = "saved";
+      selected = false;
     } else if (skippedKeys.has(key)) {
-      saveStatus = "skipped_duplicate"
-      selected = true
+      saveStatus = "skipped_duplicate";
+      selected = true;
     } else if (candidate.saveStatus === "saving") {
-      saveStatus = "idle"
+      saveStatus = "idle";
     }
 
     return {
       ...candidate,
       saveStatus,
       selected,
-    }
-  })
+    };
+  });
 }
 
 function normalizeSaveError(error: unknown, scope: GenerateUiErrorVm["scope"]): GenerateUiErrorVm {
   if (error instanceof ApiError) {
-    return { scope, message: error.message, details: error.details }
+    return { scope, message: error.message, details: error.details };
   }
-  return { scope, message: "Something went wrong. Please try again." }
+  return { scope, message: "Something went wrong. Please try again." };
 }
 
 function validateCandidatePatch(candidate: GeneratedCandidateVm, patch: CandidateEditPatchVm) {
-  const nextFront = patch.front ?? candidate.front
-  const nextBack = patch.back ?? candidate.back
-  const nextTags = patch.tags ?? candidate.tags
+  const nextFront = patch.front ?? candidate.front;
+  const nextBack = patch.back ?? candidate.back;
+  const nextTags = patch.tags ?? candidate.tags;
 
-  const errors: GeneratedCandidateVm["errors"] = {}
+  const errors: GeneratedCandidateVm["errors"] = {};
 
   if (nextFront.trim().length < 1) {
-    errors.front = "Front is required."
+    errors.front = "Front is required.";
   } else if (nextFront.length > 2000) {
-    errors.front = "Front must be 2,000 characters or less."
+    errors.front = "Front must be 2,000 characters or less.";
   }
 
   if (nextBack.trim().length < 1) {
-    errors.back = "Back is required."
+    errors.back = "Back is required.";
   } else if (nextBack.length > 10000) {
-    errors.back = "Back must be 10,000 characters or less."
+    errors.back = "Back must be 10,000 characters or less.";
   }
 
-  const normalizedTags = normalizeTags(nextTags)
+  const normalizedTags = normalizeTags(nextTags);
   if (normalizedTags.length > 20) {
-    errors.tags = "Tags must be 20 or fewer."
+    errors.tags = "Tags must be 20 or fewer.";
   }
 
   return {
@@ -223,11 +223,11 @@ function validateCandidatePatch(candidate: GeneratedCandidateVm, patch: Candidat
     normalizedTags,
     nextFront,
     nextBack,
-  }
+  };
 }
 
-type GenerateWorkflowOptions = {
-  onDeckNotFound?: () => void
+interface GenerateWorkflowOptions {
+  onDeckNotFound?: () => void;
 }
 
 export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: GenerateWorkflowOptions) {
@@ -240,18 +240,19 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
     loading: { generating: false, saving: false },
     errors: [],
     results: null,
-  })
+  });
+  const onDeckNotFound = options?.onDeckNotFound;
 
   React.useEffect(() => {
     if (typeof window === "undefined") {
-      return
+      return;
     }
     try {
-      const raw = window.sessionStorage.getItem(STORAGE_KEY)
+      const raw = window.sessionStorage.getItem(STORAGE_KEY);
       if (!raw) {
-        return
+        return;
       }
-      const parsed = JSON.parse(raw) as Partial<GenerateWorkflowStateVm>
+      const parsed = JSON.parse(raw) as Partial<GenerateWorkflowStateVm>;
       setState((prev) => ({
         ...prev,
         source: parsed.source ?? prev.source,
@@ -262,34 +263,34 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
         },
         generation: parsed.generation ?? prev.generation,
         candidates: parsed.candidates ?? prev.candidates,
-      }))
+      }));
     } catch {
-      window.sessionStorage.removeItem(STORAGE_KEY)
+      window.sessionStorage.removeItem(STORAGE_KEY);
     }
-  }, [])
+  }, []);
 
   React.useEffect(() => {
     if (typeof window === "undefined") {
-      return
+      return;
     }
     const draft = {
       source: state.source,
       options: state.options,
       generation: state.generation,
       candidates: state.candidates,
-    }
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
-  }, [state.candidates, state.generation, state.options, state.source])
+    };
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+  }, [state.candidates, state.generation, state.options, state.source]);
 
   const setErrors = React.useCallback((next: GenerateUiErrorVm | null) => {
     setState((prev) => {
       if (!next) {
-        return { ...prev, errors: [] }
+        return { ...prev, errors: [] };
       }
-      const filtered = prev.errors.filter((error) => error.scope !== next.scope)
-      return { ...prev, errors: [...filtered, next] }
-    })
-  }, [])
+      const filtered = prev.errors.filter((error) => error.scope !== next.scope);
+      return { ...prev, errors: [...filtered, next] };
+    });
+  }, []);
 
   const setSourceText = React.useCallback((text: string) => {
     setState((prev) => {
@@ -297,14 +298,14 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
         ...prev.source,
         text,
         inputChars: text.length,
-      }
-      const error = validateSource(nextSource)
+      };
+      const error = validateSource(nextSource);
       return {
         ...prev,
         source: { ...nextSource, error },
-      }
-    })
-  }, [])
+      };
+    });
+  }, []);
 
   const validateInput = React.useCallback(async () => {
     setState((prev) => ({
@@ -314,18 +315,18 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
         status: "validating",
         message: null,
       },
-    }))
-    setErrors(null)
+    }));
+    setErrors(null);
 
     const command: ValidateGenerateInputCommand = {
       source_text: state.source.text,
-    }
+    };
 
     try {
       const response = await fetchJson<ValidateGenerateInputResponseDto>("/api/generate/validate-input", {
         method: "POST",
         body: JSON.stringify(command),
-      })
+      });
 
       setState((prev) => ({
         ...prev,
@@ -340,11 +341,11 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
           maxChars: response.max_chars,
           message: `OK: ${response.input_chars.toLocaleString()} / ${response.max_chars.toLocaleString()}`,
         },
-      }))
+      }));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        window.location.href = "/login"
-        return
+        window.location.href = "/login";
+        return;
       }
       setState((prev) => ({
         ...prev,
@@ -353,14 +354,14 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
           status: "error",
           message: err instanceof ApiError ? err.message : "Validation failed. Please try again.",
         },
-      }))
-      setErrors(normalizeSaveError(err, "preflight"))
+      }));
+      setErrors(normalizeSaveError(err, "preflight"));
     }
-  }, [setErrors, state.source.text])
+  }, [setErrors, state.source.text]);
 
   const generate = React.useCallback(async () => {
-    setErrors(null)
-    const sourceError = validateSource(state.source)
+    setErrors(null);
+    const sourceError = validateSource(state.source);
     if (sourceError) {
       setState((prev) => ({
         ...prev,
@@ -368,57 +369,57 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
           ...prev.source,
           error: sourceError,
         },
-      }))
-      return
+      }));
+      return;
     }
 
-    const options = sanitizeOptions(state.options)
+    const sanitizedOptions = sanitizeOptions(state.options);
     setState((prev) => ({
       ...prev,
       loading: { ...prev.loading, generating: true },
-      options,
+      options: sanitizedOptions,
       results: null,
-    }))
+    }));
 
     const command: GenerateCommand = {
       deck_id: currentDeckId ?? undefined,
       source_text: state.source.text,
       options: {
-        max_cards: options.maxCards,
-        language: options.language,
-        ...(options.model ? { model: options.model } : {}),
+        max_cards: sanitizedOptions.maxCards,
+        language: sanitizedOptions.language,
+        ...(sanitizedOptions.model ? { model: sanitizedOptions.model } : {}),
       },
-    }
+    };
 
     try {
       const response = await fetchJson<GenerateResponseDto>("/api/generate", {
         method: "POST",
         body: JSON.stringify(command),
-      })
+      });
 
       setState((prev) => ({
         ...prev,
         generation: toGenerationMetaVm(response.generation),
         candidates: response.candidates.map(mapCandidate),
         loading: { ...prev.loading, generating: false },
-      }))
+      }));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        window.location.href = "/login"
-        return
+        window.location.href = "/login";
+        return;
       }
       if (err instanceof ApiError && err.status === 404 && err.code === "deck_not_found") {
-        options?.onDeckNotFound?.()
-        setErrors({ scope: "generate", message: "Selected deck was not found. Please reselect." })
+        onDeckNotFound?.();
+        setErrors({ scope: "generate", message: "Selected deck was not found. Please reselect." });
         setState((prev) => ({
           ...prev,
           loading: { ...prev.loading, generating: false },
-        }))
-        return
+        }));
+        return;
       }
       if (err instanceof ApiError && err.code === "input_too_large") {
-        const maxChars = Number(err.details?.max_chars ?? DEFAULT_MAX_SOURCE_CHARS)
-        const inputChars = Number(err.details?.input_chars ?? state.source.inputChars)
+        const maxChars = Number(err.details?.max_chars ?? DEFAULT_MAX_SOURCE_CHARS);
+        const inputChars = Number(err.details?.input_chars ?? state.source.inputChars);
         setState((prev) => ({
           ...prev,
           source: {
@@ -428,29 +429,27 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
             error: `Source text must be ${maxChars.toLocaleString()} characters or less.`,
           },
           loading: { ...prev.loading, generating: false },
-        }))
-        setErrors({ scope: "generate", message: err.message, details: err.details })
-        return
+        }));
+        setErrors({ scope: "generate", message: err.message, details: err.details });
+        return;
       }
 
       setState((prev) => ({
         ...prev,
         loading: { ...prev.loading, generating: false },
-      }))
-      setErrors(normalizeSaveError(err, "generate"))
+      }));
+      setErrors(normalizeSaveError(err, "generate"));
     }
-  }, [currentDeckId, options, setErrors, state.options, state.source])
+  }, [currentDeckId, onDeckNotFound, setErrors, state.options, state.source]);
 
   const toggleCandidateSelected = React.useCallback((tempId: string) => {
     setState((prev) => ({
       ...prev,
       candidates: prev.candidates.map((candidate) =>
-        candidate.tempId === tempId
-          ? { ...candidate, selected: !candidate.selected }
-          : candidate
+        candidate.tempId === tempId ? { ...candidate, selected: !candidate.selected } : candidate
       ),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const editCandidateStart = React.useCallback((tempId: string) => {
     setState((prev) => ({
@@ -458,8 +457,8 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
       candidates: prev.candidates.map((candidate) =>
         candidate.tempId === tempId ? { ...candidate, editing: true, errors: {} } : candidate
       ),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const editCandidateCancel = React.useCallback((tempId: string) => {
     setState((prev) => ({
@@ -467,36 +466,33 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
       candidates: prev.candidates.map((candidate) =>
         candidate.tempId === tempId ? { ...candidate, editing: false, errors: {} } : candidate
       ),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const editCandidateSave = React.useCallback(
     (tempId: string, patch: CandidateEditPatchVm) => {
-      let updatedFront = ""
-      let updatedBack = ""
+      let updatedFront = "";
+      let updatedBack = "";
 
       setState((prev) => ({
         ...prev,
         candidates: prev.candidates.map((candidate) => {
           if (candidate.tempId !== tempId) {
-            return candidate
+            return candidate;
           }
 
-          const { errors, normalizedTags, nextFront, nextBack } = validateCandidatePatch(
-            candidate,
-            patch
-          )
+          const { errors, normalizedTags, nextFront, nextBack } = validateCandidatePatch(candidate, patch);
           if (Object.keys(errors).length > 0) {
-            return { ...candidate, errors }
+            return { ...candidate, errors };
           }
 
-          updatedFront = nextFront
-          updatedBack = nextBack
+          updatedFront = nextFront;
+          updatedBack = nextBack;
 
           const edited =
             nextFront.trim() !== candidate.original.front.trim() ||
             nextBack.trim() !== candidate.original.back.trim() ||
-            normalizedTags.join("|") !== normalizeTags(candidate.original.tags).join("|")
+            normalizedTags.join("|") !== normalizeTags(candidate.original.tags).join("|");
 
           return {
             ...candidate,
@@ -506,22 +502,22 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
             edited,
             editing: false,
             errors: {},
-          }
+          };
         }),
-      }))
+      }));
 
       if (!currentDeckId) {
-        return
+        return;
       }
       if (!updatedFront.trim() || !updatedBack.trim()) {
-        return
+        return;
       }
 
       void (async () => {
         try {
           const response = await fetchJson<{
-            isDuplicate: boolean
-            duplicateCard: { id: string } | null
+            isDuplicate: boolean;
+            duplicateCard: { id: string } | null;
           }>("/api/cards/duplicates/check", {
             method: "POST",
             body: JSON.stringify({
@@ -529,19 +525,16 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
               front: updatedFront.trim(),
               back: updatedBack.trim(),
             }),
-          })
+          });
 
           setState((prev) => ({
             ...prev,
             candidates: prev.candidates.map((candidate) => {
               if (candidate.tempId !== tempId) {
-                return candidate
+                return candidate;
               }
-              if (
-                candidate.front.trim() !== updatedFront.trim() ||
-                candidate.back.trim() !== updatedBack.trim()
-              ) {
-                return candidate
+              if (candidate.front.trim() !== updatedFront.trim() || candidate.back.trim() !== updatedBack.trim()) {
+                return candidate;
               }
               return {
                 ...candidate,
@@ -550,50 +543,50 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
                   duplicateCardId: response.duplicateCard?.id ?? null,
                   source: "from_duplicate_check",
                 },
-              }
+              };
             }),
-          }))
+          }));
         } catch (err) {
           if (err instanceof ApiError && err.status === 401) {
-            window.location.href = "/login"
-            return
+            window.location.href = "/login";
+            return;
           }
           if (err instanceof ApiError && err.status === 404 && err.code === "deck_not_found") {
-            options?.onDeckNotFound?.()
+            options?.onDeckNotFound?.();
           }
         }
-      })()
+      })();
     },
     [currentDeckId, options]
-  )
+  );
 
   const removeCandidate = React.useCallback((tempId: string) => {
     setState((prev) => ({
       ...prev,
       candidates: prev.candidates.filter((candidate) => candidate.tempId !== tempId),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const clearSelection = React.useCallback(() => {
     setState((prev) => ({
       ...prev,
       candidates: prev.candidates.map((candidate) => ({ ...candidate, selected: false })),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const saveSelected = React.useCallback(
     async ({ deckId }: { deckId: DeckId | null }) => {
       if (!deckId) {
-        setErrors({ scope: "save", message: "Select a deck before saving." })
-        return
+        setErrors({ scope: "save", message: "Select a deck before saving." });
+        return;
       }
 
-      const selected = state.candidates.filter((candidate) => candidate.selected)
+      const selected = state.candidates.filter((candidate) => candidate.selected);
       if (selected.length === 0) {
-        return
+        return;
       }
 
-      setErrors(null)
+      setErrors(null);
       setState((prev) => ({
         ...prev,
         loading: { ...prev.loading, saving: true },
@@ -601,7 +594,7 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
         candidates: prev.candidates.map((candidate) =>
           candidate.selected ? { ...candidate, saveStatus: "saving" } : candidate
         ),
-      }))
+      }));
 
       const command: BulkCreateCardsCommand = {
         deck_id: deckId,
@@ -612,28 +605,28 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
           ai_generated: true,
           edited: candidate.edited,
         })),
-      }
+      };
 
       try {
         const response = await fetchJson<BulkCreateCardsResponseDto>("/api/cards/bulk-create", {
           method: "POST",
           body: JSON.stringify(command),
-        })
+        });
 
         setState((prev) => ({
           ...prev,
           loading: { ...prev.loading, saving: false },
           results: mapSaveResults(response),
           candidates: applyCandidateSaveStatus(prev.candidates, response),
-        }))
+        }));
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
-          window.location.href = "/login"
-          return
+          window.location.href = "/login";
+          return;
         }
         if (err instanceof ApiError && err.status === 404 && err.code === "deck_not_found") {
-          options?.onDeckNotFound?.()
-          setErrors({ scope: "save", message: "Selected deck was not found. Please reselect." })
+          options?.onDeckNotFound?.();
+          setErrors({ scope: "save", message: "Selected deck was not found. Please reselect." });
           setState((prev) => ({
             ...prev,
             loading: { ...prev.loading, saving: false },
@@ -646,8 +639,8 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
             candidates: prev.candidates.map((candidate) =>
               candidate.saveStatus === "saving" ? { ...candidate, saveStatus: "idle" } : candidate
             ),
-          }))
-          return
+          }));
+          return;
         }
         setState((prev) => ({
           ...prev,
@@ -661,12 +654,12 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
           candidates: prev.candidates.map((candidate) =>
             candidate.saveStatus === "saving" ? { ...candidate, saveStatus: "idle" } : candidate
           ),
-        }))
-        setErrors(normalizeSaveError(err, "save"))
+        }));
+        setErrors(normalizeSaveError(err, "save"));
       }
     },
     [options, setErrors, state.candidates]
-  )
+  );
 
   return {
     state,
@@ -682,5 +675,5 @@ export function useGenerateWorkflow(currentDeckId: DeckId | null, options?: Gene
     removeCandidate,
     clearSelection,
     saveSelected,
-  }
+  };
 }

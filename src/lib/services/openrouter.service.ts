@@ -5,49 +5,49 @@ export const DEFAULT_REFERER = "https://10x-devs.app";
 
 export type OpenRouterChatRole = "system" | "user" | "assistant" | "tool";
 
-export type OpenRouterChatMessage = {
+export interface OpenRouterChatMessage {
   role: OpenRouterChatRole;
   content: string;
-};
+}
 
-export type ModelParams = {
+export interface ModelParams {
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
   seed?: number;
-};
+}
 
-export type OpenRouterResponseFormatJsonSchema = {
+export interface OpenRouterResponseFormatJsonSchema {
   type: "json_schema";
   json_schema: {
     name: string;
     strict: true;
     schema: Record<string, unknown>;
   };
-};
+}
 
-export type OpenRouterChatRequest = {
+export interface OpenRouterChatRequest {
   messages: OpenRouterChatMessage[];
   model?: string;
   responseFormat?: OpenRouterResponseFormatJsonSchema;
   modelParams?: ModelParams;
   timeoutMs?: number;
   traceId?: string;
-};
+}
 
-export type OpenRouterChatResult = {
+export interface OpenRouterChatResult {
   modelUsed: string;
   rawContent: string;
   usage?: unknown;
-};
+}
 
-export type OpenRouterLogger = {
+export interface OpenRouterLogger {
   info: (message: string, meta?: Record<string, unknown>) => void;
   warn: (message: string, meta?: Record<string, unknown>) => void;
   error: (message: string, meta?: Record<string, unknown>) => void;
-};
+}
 
-export type OpenRouterServiceConfig = {
+export interface OpenRouterServiceConfig {
   apiKey: string;
   baseUrl?: string;
   defaultModel?: string;
@@ -57,11 +57,11 @@ export type OpenRouterServiceConfig = {
   fetchImpl?: typeof fetch;
   logger?: OpenRouterLogger;
   defaultModelParams?: ModelParams;
-};
+}
 
-export type OpenRouterJsonValidator<T> = {
+export interface OpenRouterJsonValidator<T> {
   safeParse: (value: unknown) => { success: true; data: T } | { success: false; error: { errors: unknown[] } };
-};
+}
 
 class OpenRouterError extends Error {
   status?: number;
@@ -127,7 +127,10 @@ export class OpenRouterUpstreamError extends OpenRouterError {
 }
 
 export class OpenRouterInvalidResponseError extends OpenRouterError {
-  constructor(message = "OpenRouter returned an invalid response", options?: { status?: number; providerMessage?: string }) {
+  constructor(
+    message = "OpenRouter returned an invalid response",
+    options?: { status?: number; providerMessage?: string }
+  ) {
     super(message, options);
     this.name = "OpenRouterInvalidResponseError";
   }
@@ -299,10 +302,7 @@ export class OpenRouterService {
     return headers;
   }
 
-  private async withTimeout(
-    timeoutMs: number,
-    fn: (signal: AbortSignal) => Promise<Response>
-  ): Promise<Response> {
+  private async withTimeout(timeoutMs: number, fn: (signal: AbortSignal) => Promise<Response>): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -413,7 +413,10 @@ export class OpenRouterService {
 
   private buildRepairMessage(error: unknown): string {
     if (error instanceof OpenRouterSchemaValidationError && error.issues?.length) {
-      const summary = error.issues.map((issue) => String(issue)).join("; ").slice(0, 400);
+      const summary = error.issues
+        .map((issue) => String(issue))
+        .join("; ")
+        .slice(0, 400);
       return `Fix previous issues: ${summary}`;
     }
 
@@ -468,19 +471,19 @@ function buildUserPrompt(sourceText: string, language: string, maxCards: number,
     .join("\n");
 }
 
-type OpenRouterParams = {
+interface OpenRouterParams {
   sourceText: string;
   maxCards: number;
   language: string;
   model?: string;
   timeoutMs?: number;
   repairMessage?: string;
-};
+}
 
-export type OpenRouterResult = {
+export interface OpenRouterResult {
   modelUsed: string;
   rawContent: string;
-};
+}
 
 export class GenerationTimeoutError extends Error {
   constructor(message = "Generation request timed out") {

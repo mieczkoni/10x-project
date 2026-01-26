@@ -1,13 +1,12 @@
 ---
-import Layout from "../layouts/Layout.astro"
-import PublicLandingView from "../components/views/public-landing/PublicLandingView.astro"
-import type { PublicLandingViewModel } from "../components/views/public-landing/public-landing.types"
+import Layout from "../layouts/Layout.astro";
+import PublicLandingView from "../components/views/public-landing/PublicLandingView.astro";
+import type { PublicLandingViewModel } from "../components/views/public-landing/public-landing.types";
 
 const vm: PublicLandingViewModel = {
   hero: {
     title: "Create flashcards 10x faster with AI",
-    subtitle:
-      "Paste your notes, generate editable cards, and study with spaced repetition without extra friction.",
+    subtitle: "Paste your notes, generate editable cards, and study with spaced repetition without extra friction.",
     howItWorksSteps: [
       "Paste your notes or slides",
       "Generate cards with AI",
@@ -30,10 +29,9 @@ const vm: PublicLandingViewModel = {
     },
   ],
   privacy: {
-    note:
-      "English-only MVP. You can permanently delete your account and data at any time in Settings.",
+    note: "English-only MVP. You can permanently delete your account and data at any time in Settings.",
   },
-}
+};
 ---
 
 <Layout title="10x Cards">

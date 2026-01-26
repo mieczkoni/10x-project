@@ -1,16 +1,16 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import type { ForgotPasswordFieldErrors, ForgotPasswordFormValues } from "./forgot-password.types"
+import type { ForgotPasswordFieldErrors, ForgotPasswordFormValues } from "./forgot-password.types";
 
-export type ForgotPasswordFormProps = {
-  value: ForgotPasswordFormValues
-  errors: ForgotPasswordFieldErrors
-  submitting: boolean
-  submitLabel?: string
-  onChange: (next: ForgotPasswordFormValues) => void
-  onSubmit: (values: ForgotPasswordFormValues) => Promise<void>
+export interface ForgotPasswordFormProps {
+  value: ForgotPasswordFormValues;
+  errors: ForgotPasswordFieldErrors;
+  submitting: boolean;
+  submitLabel?: string;
+  onChange: (next: ForgotPasswordFormValues) => void;
+  onSubmit: (values: ForgotPasswordFormValues) => Promise<void>;
 }
 
 export function ForgotPasswordForm({
@@ -21,42 +21,42 @@ export function ForgotPasswordForm({
   onChange,
   onSubmit,
 }: ForgotPasswordFormProps) {
-  const emailId = React.useId()
-  const emailErrorId = `${emailId}-error`
-  const emailRef = React.useRef<HTMLInputElement>(null)
-  const [touched, setTouched] = React.useState({ email: false })
-  const [submitAttempted, setSubmitAttempted] = React.useState(false)
+  const emailId = React.useId();
+  const emailErrorId = `${emailId}-error`;
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const [touched, setTouched] = React.useState({ email: false });
+  const [submitAttempted, setSubmitAttempted] = React.useState(false);
 
-  const showEmailError = Boolean((touched.email || submitAttempted) && errors.email)
-  const isValid = !errors.email
+  const showEmailError = Boolean((touched.email || submitAttempted) && errors.email);
+  const isValid = !errors.email;
 
   React.useEffect(() => {
     if (!submitAttempted) {
-      return
+      return;
     }
     if (errors.email && emailRef.current) {
-      emailRef.current.focus()
+      emailRef.current.focus();
     }
-  }, [errors.email, submitAttempted])
+  }, [errors.email, submitAttempted]);
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
       if (submitting) {
-        return
+        return;
       }
-      setSubmitAttempted(true)
-      await onSubmit(value)
+      setSubmitAttempted(true);
+      await onSubmit(value);
     },
     [onSubmit, submitting, value]
-  )
+  );
 
   const handleEmailChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...value, email: event.target.value })
+      onChange({ ...value, email: event.target.value });
     },
     [onChange, value]
-  )
+  );
 
   return (
     <form noValidate className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -90,5 +90,5 @@ export function ForgotPasswordForm({
         {submitting ? "Sending..." : submitLabel}
       </Button>
     </form>
-  )
+  );
 }

@@ -1,24 +1,24 @@
-export type ForgotPasswordFormValues = {
-  email: string
+export interface ForgotPasswordFormValues {
+  email: string;
 }
 
-export type ForgotPasswordFieldErrors = {
-  email: string | null
+export interface ForgotPasswordFieldErrors {
+  email: string | null;
 }
 
-export type ForgotPasswordFailureReason = "rate_limited" | "network_error" | "unknown_error"
+export type ForgotPasswordFailureReason = "rate_limited" | "network_error" | "unknown_error";
 
-export type ForgotPasswordErrorVm = {
-  reason: ForgotPasswordFailureReason
-  message: string
+export interface ForgotPasswordErrorVm {
+  reason: ForgotPasswordFailureReason;
+  message: string;
 }
 
-export type ForgotPasswordStatusVm = "idle" | "submitting" | "confirmed"
+export type ForgotPasswordStatusVm = "idle" | "submitting" | "confirmed";
 
-export type ForgotPasswordViewModel = {
-  form: ForgotPasswordFormValues
-  errors: ForgotPasswordFieldErrors
-  submitting: boolean
-  status: ForgotPasswordStatusVm
-  errorSummary: ForgotPasswordErrorVm | null
+export interface ForgotPasswordViewModel {
+  form: ForgotPasswordFormValues;
+  errors: ForgotPasswordFieldErrors;
+  submitting: boolean;
+  status: ForgotPasswordStatusVm;
+  errorSummary: ForgotPasswordErrorVm | null;
 }

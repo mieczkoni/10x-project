@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-type ResetPasswordLinksProps = {
-  forgotHref?: string
-  loginHref?: string
+interface ResetPasswordLinksProps {
+  forgotHref?: string;
+  loginHref?: string;
 }
 
 export function ResetPasswordLinks({ forgotHref = "/forgot-password", loginHref = "/login" }: ResetPasswordLinksProps) {
@@ -21,5 +21,5 @@ export function ResetPasswordLinks({ forgotHref = "/forgot-password", loginHref 
         Log in
       </a>
     </div>
-  )
+  );
 }

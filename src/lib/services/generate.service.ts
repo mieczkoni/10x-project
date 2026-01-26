@@ -41,11 +41,7 @@ function ensureArrayPayload(raw: unknown): unknown[] {
   throw new ModelValidationError("Model response must be an array of candidates");
 }
 
-async function verifyDeckOwnership(
-  supabase: SupabaseClient,
-  userId: UserId,
-  deckId: string
-): Promise<void> {
+async function verifyDeckOwnership(supabase: SupabaseClient, userId: UserId, deckId: string): Promise<void> {
   const { data, error } = await supabase
     .from("decks")
     .select("id")
@@ -173,7 +169,6 @@ export async function generateCandidates(
   const modelRequested = command.options?.model;
   const generationId = crypto.randomUUID();
   let repairAttempted = false;
-  let validationIssues: string[] | undefined;
   let providerDurationMs: number | undefined;
   let retryCount = 0;
   const flowStartedAt = Date.now();
@@ -235,7 +230,6 @@ export async function generateCandidates(
       if (error instanceof ModelValidationError) {
         stage.current = "provider_repair";
         repairAttempted = true;
-        validationIssues = error.issues;
         retryCount = 1;
         const repairMessage = error.issues?.join("; ").slice(0, 400);
         const retryStart = Date.now();

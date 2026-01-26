@@ -9,108 +9,108 @@
  *   we use `Omit<...> & { ... }` and document why.
  */
 
-import type { Json, Tables, TablesInsert, TablesUpdate } from "./db/database.types"
+import type { Json, Tables, TablesInsert, TablesUpdate } from "./db/database.types";
 
 /** Common helper: the DB exposes `Json` as a union; API payloads typically want an object. */
-export type JsonObject = Record<string, Json>
+export type JsonObject = Record<string, Json>;
 
 /** Convenience aliases for entity types derived from the database schema. */
-export type DeckEntity = Tables<"decks">
-export type CardEntity = Tables<"cards">
-export type EventEntity = Tables<"events">
+export type DeckEntity = Tables<"decks">;
+export type CardEntity = Tables<"cards">;
+export type EventEntity = Tables<"events">;
 
 /** ID aliases anchored to DB entity columns. */
-export type DeckId = DeckEntity["id"]
-export type CardId = CardEntity["id"]
-export type EventId = EventEntity["id"]
-export type UserId = DeckEntity["user_id"] // all entities use the same `user_id` shape
+export type DeckId = DeckEntity["id"];
+export type CardId = CardEntity["id"];
+export type EventId = EventEntity["id"];
+export type UserId = DeckEntity["user_id"]; // all entities use the same `user_id` shape
 
 // ------------------------------------------------------------
 // Error + pagination DTOs (applies to all endpoints)
 // ------------------------------------------------------------
 
-export type ApiErrorDto = {
-  code: string
-  message: string
+export interface ApiErrorDto {
+  code: string;
+  message: string;
   /** Extra debug context (shape varies per error). */
-  details?: JsonObject
+  details?: JsonObject;
 }
 
-export type ApiErrorResponseDto = {
-  error: ApiErrorDto
+export interface ApiErrorResponseDto {
+  error: ApiErrorDto;
 }
 
-export type PageDto = {
-  limit: number
-  nextCursor: string | null
+export interface PageDto {
+  limit: number;
+  nextCursor: string | null;
 }
 
-export type ListResponseDto<T> = {
-  data: T[]
-  page: PageDto
+export interface ListResponseDto<T> {
+  data: T[];
+  page: PageDto;
 }
 
 /** Some endpoints explicitly return no body (HTTP 204). */
-export type NoContentDto = null
+export type NoContentDto = null;
 
 // ------------------------------------------------------------
 // Query models (list endpoints)
 // ------------------------------------------------------------
 
-export type PaginationQueryDto = {
-  limit?: number
-  cursor?: string
-  sort?: string
-  order?: "asc" | "desc"
+export interface PaginationQueryDto {
+  limit?: number;
+  cursor?: string;
+  sort?: string;
+  order?: "asc" | "desc";
 }
 
 export type ListDecksQueryDto = PaginationQueryDto & {
-  q?: string
-  includeDeleted?: boolean
-}
+  q?: string;
+  includeDeleted?: boolean;
+};
 
 export type ListCardsQueryDto = PaginationQueryDto & {
-  deckId?: DeckId
+  deckId?: DeckId;
   /** Repeatable `tag` param support (preferred) */
-  tag?: string | string[]
+  tag?: string | string[];
   /** Comma-separated tags support (fallback) */
-  tags?: string
-  q?: string
-  aiGenerated?: boolean
-  includeDeleted?: boolean
-}
+  tags?: string;
+  q?: string;
+  aiGenerated?: boolean;
+  includeDeleted?: boolean;
+};
 
 export type ListEventsQueryDto = PaginationQueryDto & {
-  type?: EventType
+  type?: EventType;
   /** ISO timestamps */
-  from?: string
+  from?: string;
   /** ISO timestamps */
-  to?: string
-}
+  to?: string;
+};
 
 // ------------------------------------------------------------
 // Decks (`public.decks`)
 // ------------------------------------------------------------
 
 /** Deck DTO matches DB row shape (API returns all columns). */
-export type DeckDto = DeckEntity
+export type DeckDto = DeckEntity;
 
-export type DeckListResponseDto = ListResponseDto<DeckDto>
+export type DeckListResponseDto = ListResponseDto<DeckDto>;
 
 /** POST `/decks` */
-export type CreateDeckCommand = Pick<DeckEntity, "name" | "description">
+export type CreateDeckCommand = Pick<DeckEntity, "name" | "description">;
 
 /** PATCH `/decks/{deckId}` */
-export type UpdateDeckCommand = Partial<Pick<DeckEntity, "name" | "description" | "deleted_at">>
+export type UpdateDeckCommand = Partial<Pick<DeckEntity, "name" | "description" | "deleted_at">>;
 
 // ------------------------------------------------------------
 // Cards (`public.cards`)
 // ------------------------------------------------------------
 
 /** Card DTO matches DB row shape (API returns all columns). */
-export type CardDto = CardEntity
+export type CardDto = CardEntity;
 
-export type CardListResponseDto = ListResponseDto<CardDto>
+export type CardListResponseDto = ListResponseDto<CardDto>;
 
 /**
  * POST `/cards`
@@ -128,13 +128,13 @@ export type CreateCardCommand = Omit<
    * API includes `tags` but DB defaults it to `[]`.
    * Keep optional so clients can omit and rely on defaulting.
    */
-  tags?: CardEntity["tags"]
+  tags?: CardEntity["tags"];
   /**
    * API expects an explicit value; DB allows defaulting.
    * Keep required at the API level for clarity.
    */
-  ai_generated: CardEntity["ai_generated"]
-}
+  ai_generated: CardEntity["ai_generated"];
+};
 
 /**
  * PATCH `/cards/{cardId}`
@@ -145,25 +145,25 @@ export type CreateCardCommand = Omit<
 export type UpdateCardCommand = Omit<
   TablesUpdate<"cards">,
   "id" | "user_id" | "deck_id" | "content_hash" | "created_at" | "updated_at"
->
+>;
 
 // ------------------------------------------------------------
 // Duplicate detection (PRD FR-021)
 // ------------------------------------------------------------
 
-export type CheckCardDuplicateCommand = Pick<CreateCardCommand, "deck_id" | "front" | "back">
+export type CheckCardDuplicateCommand = Pick<CreateCardCommand, "deck_id" | "front" | "back">;
 
-export type DuplicateCardPreviewDto = Pick<CardDto, "id" | "front" | "back">
+export type DuplicateCardPreviewDto = Pick<CardDto, "id" | "front" | "back">;
 
-export type CheckCardDuplicateResponseDto = {
+export interface CheckCardDuplicateResponseDto {
   /** Computed using the same normalization as `public.generate_content_hash(front, back)` */
-  content_hash: CardEntity["content_hash"]
-  isDuplicate: boolean
+  content_hash: CardEntity["content_hash"];
+  isDuplicate: boolean;
   /**
    * When not a duplicate, servers may return `null` to keep the response shape stable.
    * The API plan shows an object only in the duplicate case.
    */
-  duplicateCard: DuplicateCardPreviewDto | null
+  duplicateCard: DuplicateCardPreviewDto | null;
 }
 
 // ------------------------------------------------------------
@@ -187,7 +187,7 @@ export type EventType =
   | "review_session_start"
   | "review_answer"
   | "account_deleted"
-  | "report_hallucination"
+  | "report_hallucination";
 
 /**
  * Event DTO is derived from the DB row but narrows:
@@ -195,43 +195,43 @@ export type EventType =
  * - `payload` to an object (API validation requirement)
  */
 export type EventDto = Omit<EventEntity, "event_type" | "payload"> & {
-  event_type: EventType
-  payload: JsonObject
-}
+  event_type: EventType;
+  payload: JsonObject;
+};
 
-export type EventListResponseDto = ListResponseDto<EventDto>
+export type EventListResponseDto = ListResponseDto<EventDto>;
 
 /** POST `/events` */
 export type CreateEventCommand = Pick<EventDto, "event_type"> & {
   /** Defaults to `{}` if omitted. */
-  payload?: JsonObject
-}
+  payload?: JsonObject;
+};
 
 // ------------------------------------------------------------
 // AI generation (PRD FR-001)
 // ------------------------------------------------------------
 
-export type GenerateCommand = {
+export interface GenerateCommand {
   /** Optional default save target / duplicate checks. */
-  deck_id?: DeckId
-  source_text: string
+  deck_id?: DeckId;
+  source_text: string;
   options?: {
-    max_cards?: number
-    language?: string
-    model?: string
-  }
+    max_cards?: number;
+    language?: string;
+    model?: string;
+  };
 }
 
-export type GenerationMetaDto = {
-  id: string
-  created_at: string
-  model: string
-  input_chars: number
+export interface GenerationMetaDto {
+  id: string;
+  created_at: string;
+  model: string;
+  input_chars: number;
 }
 
-export type GeneratedCandidateDuplicateDto = {
-  isDuplicate: boolean
-  duplicateCardId: CardId | null
+export interface GeneratedCandidateDuplicateDto {
+  isDuplicate: boolean;
+  duplicateCardId: CardId | null;
 }
 
 /**
@@ -239,21 +239,21 @@ export type GeneratedCandidateDuplicateDto = {
  * (same primitives and future persistence target).
  */
 export type GeneratedCandidateDto = Pick<CardDto, "front" | "back" | "tags"> & {
-  temp_id: string
-  duplicate: GeneratedCandidateDuplicateDto
+  temp_id: string;
+  duplicate: GeneratedCandidateDuplicateDto;
+};
+
+export interface GenerateResponseDto {
+  generation: GenerationMetaDto;
+  candidates: GeneratedCandidateDto[];
 }
 
-export type GenerateResponseDto = {
-  generation: GenerationMetaDto
-  candidates: GeneratedCandidateDto[]
-}
+export type ValidateGenerateInputCommand = Pick<GenerateCommand, "source_text">;
 
-export type ValidateGenerateInputCommand = Pick<GenerateCommand, "source_text">
-
-export type ValidateGenerateInputResponseDto = {
-  ok: true
-  input_chars: number
-  max_chars: number
+export interface ValidateGenerateInputResponseDto {
+  ok: true;
+  input_chars: number;
+  max_chars: number;
 }
 
 // ------------------------------------------------------------
@@ -261,26 +261,26 @@ export type ValidateGenerateInputResponseDto = {
 // ------------------------------------------------------------
 
 export type BulkCreateCardCandidateCommand = Pick<CreateCardCommand, "front" | "back" | "tags" | "ai_generated"> & {
-  edited: boolean
-}
+  edited: boolean;
+};
 
 /** POST `/cards:bulkCreate` */
-export type BulkCreateCardsCommand = {
-  deck_id: DeckId
-  cards: BulkCreateCardCandidateCommand[]
+export interface BulkCreateCardsCommand {
+  deck_id: DeckId;
+  cards: BulkCreateCardCandidateCommand[];
 }
 
-export type BulkCreateCardsCreatedDto = Pick<CardDto, "id" | "front" | "back">
+export type BulkCreateCardsCreatedDto = Pick<CardDto, "id" | "front" | "back">;
 
-export type BulkCreateCardsSkippedDto = {
-  reason: "duplicate_in_deck"
-  front: CardDto["front"]
-  back: CardDto["back"]
+export interface BulkCreateCardsSkippedDto {
+  reason: "duplicate_in_deck";
+  front: CardDto["front"];
+  back: CardDto["back"];
 }
 
-export type BulkCreateCardsResponseDto = {
-  created: BulkCreateCardsCreatedDto[]
-  skipped: BulkCreateCardsSkippedDto[]
+export interface BulkCreateCardsResponseDto {
+  created: BulkCreateCardsCreatedDto[];
+  skipped: BulkCreateCardsSkippedDto[];
 }
 
 // ------------------------------------------------------------
@@ -289,49 +289,49 @@ export type BulkCreateCardsResponseDto = {
 // to DB entities via `deck_id` and `card_id` and the card preview shape.
 // ------------------------------------------------------------
 
-export type StartReviewSessionCommand = {
-  deck_id: DeckId
-  limit: number
+export interface StartReviewSessionCommand {
+  deck_id: DeckId;
+  limit: number;
 }
 
-export type ReviewSessionDto = {
-  id: string
-  deck_id: DeckId
-  created_at: string
+export interface ReviewSessionDto {
+  id: string;
+  deck_id: DeckId;
+  created_at: string;
 }
 
 export type ReviewCardPromptDto = Pick<CardDto, "id" | "front"> & {
   /** Card back is hidden until reveal; API returns `null` in the prompt. */
-  back: null
+  back: null;
+};
+
+export interface StartReviewSessionResponseDto {
+  session: ReviewSessionDto;
+  card: ReviewCardPromptDto;
 }
 
-export type StartReviewSessionResponseDto = {
-  session: ReviewSessionDto
-  card: ReviewCardPromptDto
+export type ReviewRating = "again" | "hard" | "good" | "easy";
+
+export interface AnswerReviewCardCommand {
+  card_id: CardId;
+  rating: ReviewRating;
 }
 
-export type ReviewRating = "again" | "hard" | "good" | "easy"
-
-export type AnswerReviewCardCommand = {
-  card_id: CardId
-  rating: ReviewRating
-}
-
-export type AnswerReviewCardResponseDto = {
-  updatedCard: Pick<CardDto, "id">
-  nextCard: ReviewCardPromptDto
-  done: boolean
+export interface AnswerReviewCardResponseDto {
+  updatedCard: Pick<CardDto, "id">;
+  nextCard: ReviewCardPromptDto;
+  done: boolean;
 }
 
 // ------------------------------------------------------------
 // Report hallucination / incorrect card (PRD US-012)
 // ------------------------------------------------------------
 
-export type ReportCardReason = "hallucination" | "incorrect" | "other"
+export type ReportCardReason = "hallucination" | "incorrect" | "other";
 
-export type ReportCardCommand = {
-  reason: ReportCardReason
-  notes?: string
+export interface ReportCardCommand {
+  reason: ReportCardReason;
+  notes?: string;
 }
 
 // ------------------------------------------------------------
@@ -339,12 +339,11 @@ export type ReportCardCommand = {
 // ------------------------------------------------------------
 
 /** POST `/me/delete` */
-export type DeleteMeCommand = {
+export interface DeleteMeCommand {
   /** Enforced confirmation flag. */
-  confirm: true
+  confirm: true;
 }
 
-export type DeleteMeResponseDto = {
-  status: "deleting"
+export interface DeleteMeResponseDto {
+  status: "deleting";
 }
-

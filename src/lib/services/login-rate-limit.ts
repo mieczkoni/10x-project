@@ -2,16 +2,16 @@ const WINDOW_MS = 10 * 60 * 1000;
 const MAX_FAILURES = 5;
 const COOLDOWN_MS = 5 * 60 * 1000;
 
-type LoginRateLimitRecord = {
+interface LoginRateLimitRecord {
   failures: number[];
   blockedUntil?: number;
-};
+}
 
 const failuresByKey = new Map<string, LoginRateLimitRecord>();
 
 function normalizeKey(email: string, ipAddress: string | null): string {
   const normalizedEmail = email.trim().toLowerCase();
-  const normalizedIp = ipAddress?.trim() || 'unknown';
+  const normalizedIp = ipAddress?.trim() || "unknown";
   if (!normalizedEmail) {
     return `ip:${normalizedIp}`;
   }

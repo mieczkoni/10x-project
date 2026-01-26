@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-type LoginLinksProps = {
-  forgotHref?: string
-  signupHref?: string
+interface LoginLinksProps {
+  forgotHref?: string;
+  signupHref?: string;
 }
 
 export function LoginLinks({ forgotHref = "/forgot-password", signupHref = "/signup" }: LoginLinksProps) {
@@ -21,5 +21,5 @@ export function LoginLinks({ forgotHref = "/forgot-password", signupHref = "/sig
         Create account
       </a>
     </div>
-  )
+  );
 }

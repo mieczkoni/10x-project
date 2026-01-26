@@ -1,41 +1,39 @@
-import * as React from "react"
+import * as React from "react";
 
-import { ApiError, fetchJson } from "../../../lib/http/client"
-import { Button } from "../../ui/button"
+import { ApiError, fetchJson } from "../../../lib/http/client";
+import { Button } from "../../ui/button";
 
-type AppHeaderProps = {
-  userEmail?: string | null
-  children?: React.ReactNode
+interface AppHeaderProps {
+  userEmail?: string | null;
+  children?: React.ReactNode;
 }
 
 export function AppHeader({ userEmail, children }: AppHeaderProps) {
-  const [loggingOut, setLoggingOut] = React.useState(false)
-  const [logoutError, setLogoutError] = React.useState<string | null>(null)
+  const [loggingOut, setLoggingOut] = React.useState(false);
+  const [logoutError, setLogoutError] = React.useState<string | null>(null);
 
   const handleLogout = React.useCallback(async () => {
     if (loggingOut) {
-      return
+      return;
     }
-    setLoggingOut(true)
-    setLogoutError(null)
+    setLoggingOut(true);
+    setLogoutError(null);
 
     try {
-      await fetchJson<{ ok: true }>("/api/auth/logout", { method: "POST" })
-      window.location.href = "/"
+      await fetchJson<{ ok: true }>("/api/auth/logout", { method: "POST" });
+      window.location.href = "/";
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        window.location.href = "/"
-        return
+        window.location.href = "/";
+        return;
       }
-      setLogoutError(
-        error instanceof ApiError ? error.message : "Logout failed. Please try again."
-      )
+      setLogoutError(error instanceof ApiError ? error.message : "Logout failed. Please try again.");
     } finally {
-      setLoggingOut(false)
+      setLoggingOut(false);
     }
-  }, [loggingOut])
+  }, [loggingOut]);
 
-  const emailLabel = userEmail?.trim() ? userEmail : "Signed in"
+  const emailLabel = userEmail?.trim() ? userEmail : "Signed in";
 
   return (
     <header className="border-b border-slate-200 bg-white">
@@ -61,5 +59,5 @@ export function AppHeader({ userEmail, children }: AppHeaderProps) {
         </div>
       ) : null}
     </header>
-  )
+  );
 }

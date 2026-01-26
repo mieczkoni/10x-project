@@ -1,9 +1,9 @@
-type BulkActionBarProps = {
-  selectedCount: number
-  saving: boolean
-  canSave: boolean
-  onSaveSelected: () => void
-  onClearSelection: () => void
+interface BulkActionBarProps {
+  selectedCount: number;
+  saving: boolean;
+  canSave: boolean;
+  onSaveSelected: () => void;
+  onClearSelection: () => void;
 }
 
 export function BulkActionBar({
@@ -42,5 +42,5 @@ export function BulkActionBar({
         </div>
       </div>
     </div>
-  )
+  );
 }

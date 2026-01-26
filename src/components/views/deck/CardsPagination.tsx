@@ -1,18 +1,18 @@
-import * as React from "react"
+import * as React from "react";
 
-import type { CardsPageVm } from "./deck-detail.types"
+import type { CardsPageVm } from "./deck-detail.types";
 
-type CardsPaginationProps = {
-  page: CardsPageVm
-  loading: boolean
-  onNext: () => Promise<void>
-  onPrev: () => Promise<void>
-  onRefresh: () => Promise<void>
+interface CardsPaginationProps {
+  page: CardsPageVm;
+  loading: boolean;
+  onNext: () => Promise<void>;
+  onPrev: () => Promise<void>;
+  onRefresh: () => Promise<void>;
 }
 
 export function CardsPagination({ page, loading, onNext, onPrev, onRefresh }: CardsPaginationProps) {
-  const hasPrev = page.cursorStack.length > 0
-  const hasNext = Boolean(page.nextCursor)
+  const hasPrev = page.cursorStack.length > 0;
+  const hasNext = Boolean(page.nextCursor);
 
   return (
     <nav
@@ -49,5 +49,5 @@ export function CardsPagination({ page, loading, onNext, onPrev, onRefresh }: Ca
         </button>
       </div>
     </nav>
-  )
+  );
 }

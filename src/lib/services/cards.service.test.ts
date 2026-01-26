@@ -19,15 +19,18 @@ vi.mock("./events.service", () => ({
   createEvent: vi.fn(),
 }));
 
-type QueryResult<T> = { data: T; error: { code?: string; message: string } | null };
+interface QueryResult<T> {
+  data: T;
+  error: { code?: string; message: string } | null;
+}
 
-type BuilderOptions<T = unknown> = {
+interface BuilderOptions<T = unknown> {
   selectResolves?: boolean;
   selectResult?: QueryResult<T>;
   maybeSingleResult?: QueryResult<T>;
   singleResult?: QueryResult<T>;
   limitResult?: QueryResult<T>;
-};
+}
 
 const createBuilder = <T = unknown>(options: BuilderOptions<T> = {}) => {
   const builder: Record<string, unknown> = {};
@@ -385,18 +388,14 @@ describe("cards.service", () => {
         ],
       }
     `);
-    expect(mockedCreateEvent).toHaveBeenCalledWith(
-      supabase,
-      "user-1",
-      "accepted_after_edit",
-      { deck_id: "deck-1", card_id: "card-1" }
-    );
-    expect(mockedCreateEvent).toHaveBeenCalledWith(
-      supabase,
-      "user-1",
-      "edited",
-      { deck_id: "deck-1", card_id: "card-1" }
-    );
+    expect(mockedCreateEvent).toHaveBeenCalledWith(supabase, "user-1", "accepted_after_edit", {
+      deck_id: "deck-1",
+      card_id: "card-1",
+    });
+    expect(mockedCreateEvent).toHaveBeenCalledWith(supabase, "user-1", "edited", {
+      deck_id: "deck-1",
+      card_id: "card-1",
+    });
   });
 
   it("throws CONTENT_HASH_FAILED when bulk content hash fails", async () => {
@@ -411,7 +410,7 @@ describe("cards.service", () => {
       cards: [{ front: "A", back: "1", ai_generated: true, tags: [], edited: false }],
     };
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     await expect(bulkCreateCards(supabase as never, "user-1", command)).rejects.toThrow("CONTENT_HASH_FAILED");
 
