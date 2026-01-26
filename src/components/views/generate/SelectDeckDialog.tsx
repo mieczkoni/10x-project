@@ -57,7 +57,7 @@ export function SelectDeckDialog({ open, decks, value, onChange, onConfirm, onOp
   const disableConfirm = !value;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
       <button
         type="button"
         className="absolute inset-0 z-0 cursor-pointer"

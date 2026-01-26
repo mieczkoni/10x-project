@@ -3,6 +3,7 @@ import * as React from "react";
 import type { CreateDeckCommand, DeckDto } from "../../../types";
 import { ApiError, fetchJson } from "../../../lib/http/client";
 import type { CreateDeckFormVm } from "./dashboard.types";
+import { Portal } from "@/components/ui/portal";
 
 interface CreateDeckDialogProps {
   open: boolean;
@@ -131,98 +132,100 @@ export function CreateDeckDialog({ open, onOpenChange, onCreated }: CreateDeckDi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
-      <button
-        type="button"
-        className="absolute inset-0 z-0 cursor-pointer"
-        onClick={handleClose}
-        aria-label="Close dialog"
-        tabIndex={-1}
-      />
-      <div
-        className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-deck-title"
-        tabIndex={-1}
-        data-test-id="create-deck-dialog"
-      >
-        <div className="flex flex-col gap-1">
-          <h2 id="create-deck-title" className="text-lg font-semibold text-slate-900">
-            Create deck
-          </h2>
-          <p className="text-sm text-slate-600">Give your deck a name and optional description.</p>
-        </div>
-
-        <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
+    <Portal>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4">
+        <button
+          type="button"
+          className="absolute inset-0 z-0 cursor-pointer"
+          onClick={handleClose}
+          aria-label="Close dialog"
+          tabIndex={-1}
+        />
+        <div
+          className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-deck-title"
+          tabIndex={-1}
+          data-test-id="create-deck-dialog"
+        >
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-slate-600" htmlFor="deck-name">
-              Name
-            </label>
-            <input
-              id="deck-name"
-              ref={nameInputRef}
-              className="h-10 rounded-md border border-slate-200 px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
-              value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-              aria-invalid={Boolean(form.errors.name)}
-              aria-describedby={form.errors.name ? "deck-name-error" : undefined}
-              required
-              data-test-id="create-deck-name-input"
-            />
-            {form.errors.name ? (
-              <p id="deck-name-error" className="text-xs text-red-600">
-                {form.errors.name}
-              </p>
-            ) : null}
+            <h2 id="create-deck-title" className="text-lg font-semibold text-slate-900">
+              Create deck
+            </h2>
+            <p className="text-sm text-slate-600">Give your deck a name and optional description.</p>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-slate-600" htmlFor="deck-description">
-              Description
-            </label>
-            <textarea
-              id="deck-description"
-              className="min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
-              value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-              aria-invalid={Boolean(form.errors.description)}
-              aria-describedby={form.errors.description ? "deck-description-error" : undefined}
-              data-test-id="create-deck-description-input"
-            />
-            {form.errors.description ? (
-              <p id="deck-description-error" className="text-xs text-red-600">
-                {form.errors.description}
-              </p>
-            ) : null}
-          </div>
-
-          {form.errors.form ? (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3" aria-live="assertive">
-              <p className="text-xs text-red-700">{form.errors.form}</p>
+          <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-slate-600" htmlFor="deck-name">
+                Name
+              </label>
+              <input
+                id="deck-name"
+                ref={nameInputRef}
+                className="h-10 rounded-md border border-slate-200 px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                value={form.name}
+                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                aria-invalid={Boolean(form.errors.name)}
+                aria-describedby={form.errors.name ? "deck-name-error" : undefined}
+                required
+                data-test-id="create-deck-name-input"
+              />
+              {form.errors.name ? (
+                <p id="deck-name-error" className="text-xs text-red-600">
+                  {form.errors.name}
+                </p>
+              ) : null}
             </div>
-          ) : null}
 
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              className="h-10 rounded-md border border-slate-200 px-4 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
-              onClick={handleClose}
-              disabled={form.submitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="h-10 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-              disabled={form.submitting}
-              data-test-id="create-deck-submit-button"
-            >
-              {form.submitting ? "Creating..." : "Create deck"}
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-slate-600" htmlFor="deck-description">
+                Description
+              </label>
+              <textarea
+                id="deck-description"
+                className="min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                value={form.description}
+                onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                aria-invalid={Boolean(form.errors.description)}
+                aria-describedby={form.errors.description ? "deck-description-error" : undefined}
+                data-test-id="create-deck-description-input"
+              />
+              {form.errors.description ? (
+                <p id="deck-description-error" className="text-xs text-red-600">
+                  {form.errors.description}
+                </p>
+              ) : null}
+            </div>
+
+            {form.errors.form ? (
+              <div className="rounded-md border border-red-200 bg-red-50 p-3" aria-live="assertive">
+                <p className="text-xs text-red-700">{form.errors.form}</p>
+              </div>
+            ) : null}
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="h-10 rounded-md border border-slate-200 px-4 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                onClick={handleClose}
+                disabled={form.submitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="h-10 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={form.submitting}
+                data-test-id="create-deck-submit-button"
+              >
+                {form.submitting ? "Creating..." : "Create deck"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }

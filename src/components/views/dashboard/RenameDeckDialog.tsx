@@ -2,6 +2,7 @@ import * as React from "react";
 
 import type { DeckId, UpdateDeckCommand } from "../../../types";
 import type { DeckListItemVm } from "./dashboard.types";
+import { Portal } from "@/components/ui/portal";
 
 interface RenameDeckDialogProps {
   open: boolean;
@@ -127,92 +128,94 @@ export function RenameDeckDialog({ open, deck, onOpenChange, onSubmit }: RenameD
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 relative">
-      <button
-        type="button"
-        className="absolute inset-0 z-0 cursor-pointer"
-        onClick={handleClose}
-        aria-label="Close dialog"
-        tabIndex={-1}
-      />
-      <div
-        className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="rename-deck-title"
-        tabIndex={-1}
-      >
-        <div className="flex flex-col gap-1">
-          <h2 id="rename-deck-title" className="text-lg font-semibold text-slate-900">
-            Rename deck
-          </h2>
-          <p className="text-sm text-slate-600">Update the name or description.</p>
-        </div>
-
-        <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
+    <Portal>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4">
+        <button
+          type="button"
+          className="absolute inset-0 z-0 cursor-pointer"
+          onClick={handleClose}
+          aria-label="Close dialog"
+          tabIndex={-1}
+        />
+        <div
+          className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-deck-title"
+          tabIndex={-1}
+        >
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-slate-600" htmlFor="rename-deck-name">
-              Name
-            </label>
-            <input
-              id="rename-deck-name"
-              ref={nameInputRef}
-              className="h-10 rounded-md border border-slate-200 px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
-              value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-              aria-invalid={Boolean(form.errors.name)}
-              aria-describedby={form.errors.name ? "rename-deck-name-error" : undefined}
-              required
-            />
-            {form.errors.name ? (
-              <p id="rename-deck-name-error" className="text-xs text-red-600">
-                {form.errors.name}
-              </p>
-            ) : null}
+            <h2 id="rename-deck-title" className="text-lg font-semibold text-slate-900">
+              Rename deck
+            </h2>
+            <p className="text-sm text-slate-600">Update the name or description.</p>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-slate-600" htmlFor="rename-deck-description">
-              Description
-            </label>
-            <textarea
-              id="rename-deck-description"
-              className="min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
-              value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-              aria-invalid={Boolean(form.errors.description)}
-              aria-describedby={form.errors.description ? "rename-deck-description-error" : undefined}
-            />
-            {form.errors.description ? (
-              <p id="rename-deck-description-error" className="text-xs text-red-600">
-                {form.errors.description}
-              </p>
-            ) : null}
-          </div>
-
-          {form.errors.form ? (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3" aria-live="assertive">
-              <p className="text-xs text-red-700">{form.errors.form}</p>
+          <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-slate-600" htmlFor="rename-deck-name">
+                Name
+              </label>
+              <input
+                id="rename-deck-name"
+                ref={nameInputRef}
+                className="h-10 rounded-md border border-slate-200 px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                value={form.name}
+                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                aria-invalid={Boolean(form.errors.name)}
+                aria-describedby={form.errors.name ? "rename-deck-name-error" : undefined}
+                required
+              />
+              {form.errors.name ? (
+                <p id="rename-deck-name-error" className="text-xs text-red-600">
+                  {form.errors.name}
+                </p>
+              ) : null}
             </div>
-          ) : null}
 
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              className="h-10 rounded-md border border-slate-200 px-4 text-sm text-slate-700 hover:bg-slate-50"
-              onClick={handleClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="h-10 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
-            >
-              Save changes
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-slate-600" htmlFor="rename-deck-description">
+                Description
+              </label>
+              <textarea
+                id="rename-deck-description"
+                className="min-h-[96px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                value={form.description}
+                onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                aria-invalid={Boolean(form.errors.description)}
+                aria-describedby={form.errors.description ? "rename-deck-description-error" : undefined}
+              />
+              {form.errors.description ? (
+                <p id="rename-deck-description-error" className="text-xs text-red-600">
+                  {form.errors.description}
+                </p>
+              ) : null}
+            </div>
+
+            {form.errors.form ? (
+              <div className="rounded-md border border-red-200 bg-red-50 p-3" aria-live="assertive">
+                <p className="text-xs text-red-700">{form.errors.form}</p>
+              </div>
+            ) : null}
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="h-10 rounded-md border border-slate-200 px-4 text-sm text-slate-700 hover:bg-slate-50"
+                onClick={handleClose}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="h-10 rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                Save changes
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }
