@@ -18,7 +18,7 @@ A modern, opinionated starter template for building fast, accessible, and AI-fri
 - Node.js v22.14.0 (as specified in `.nvmrc`)
 - npm (comes with Node.js)
 
-## Getting Started
+## Getting started
 
 1. Clone the repository:
 
